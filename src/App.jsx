@@ -606,12 +606,12 @@ function App() {
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                           <label htmlFor="startYear" className="text-sm text-blue-300/70">Start Year</label>
-                           <input id="startYear" type="number" value={startYear} onChange={e => setStartYear(parseInt(e.target.value))} className="w-24 bg-slate-800 border border-slate-700 rounded-md p-2 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+                            <label htmlFor="startYear" className="text-sm text-blue-300/70">Start Year</label>
+                            <input id="startYear" type="number" value={startYear} onChange={e => setStartYear(parseInt(e.target.value))} className="w-24 bg-slate-800 border border-slate-700 rounded-md p-2 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" />
                         </div>
                         <div className="flex items-center gap-2">
-                           <label htmlFor="endYear" className="text-sm text-blue-300/70">End Year</label>
-                           <input id="endYear" type="number" value={endYear} onChange={e => setEndYear(parseInt(e.target.value))} className="w-24 bg-slate-800 border border-slate-700 rounded-md p-2 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+                            <label htmlFor="endYear" className="text-sm text-blue-300/70">End Year</label>
+                            <input id="endYear" type="number" value={endYear} onChange={e => setEndYear(parseInt(e.target.value))} className="w-24 bg-slate-800 border border-slate-700 rounded-md p-2 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" />
                         </div>
                     </div>
                     <button 
@@ -645,10 +645,10 @@ function App() {
                   </div>
                 )}
                 {!isLoading && !error && seasonalityData && (
-                    <div className="space-y-16 pb-16">
+                    <div className="pb-16">
                         <div className="h-[400px] relative">
-                            <h2 className="text-3xl font-bold text-center mb-6 text-slate-200 tracking-tight">Seasonal Trajectory</h2>
-                             {selectedRange.start !== null && (
+                            <h2 style={{ position: 'relative', left: '5px' }} className="text-3xl font-bold text-center mb-6 text-slate-200 tracking-tight">Seasonal Trajectory</h2>
+                            {selectedRange.start !== null && (
                                 <button onClick={resetSelection} className="absolute top-0 right-0 bg-red-500/20 text-white py-1 px-3 rounded-full text-xs flex items-center gap-1 hover:bg-red-500/40 transition-colors z-20">
                                     <XCircle size={14}/>
                                     Reset Selection
@@ -677,9 +677,9 @@ function App() {
                             </ResponsiveContainer>
                         </div>
 
-                        <div className="h-[300px]">
-                            <h2 className="text-3xl font-bold text-center mb-6 text-slate-200 tracking-tight">Detrended Seasonal Path</h2>
-                             <ResponsiveContainer width="100%" height="100%">
+                        <div className="h-[300px] mt-24">
+                            <h2 style={{ position: 'relative', left: '5px' }} className="text-3xl font-bold text-center mb-6 text-slate-200 tracking-tight">Detrended Seasonal Path</h2>
+                            <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                     <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} />
                                     <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={['Day 1', 'Day 22', 'Day 43', 'Day 64', 'Day 85', 'Day 106', 'Day 127', 'Day 148', 'Day 169', 'Day 190', 'Day 211', 'Day 232']} tickFormatter={formatXAxis} />
@@ -690,9 +690,9 @@ function App() {
                             </ResponsiveContainer>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch mt-24">
                             <div className="h-[300px]">
-                                <h3 className="text-xl font-semibold text-center mb-4 text-slate-300 tracking-tight">Monthly Return</h3>
+                                <h3 style={{ position: 'relative', left: '5px' }} className="text-xl font-semibold text-center mb-4 text-slate-300 tracking-tight">Monthly Return</h3>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                         <defs>
@@ -715,8 +715,8 @@ function App() {
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
-                             <div className="h-[300px]">
-                                <h3 className="text-xl font-semibold text-center mb-4 text-slate-300 tracking-tight">Day-of-Week Return</h3>
+                              <div className="h-[300px]">
+                                <h3 style={{ position: 'relative', left: '5px' }} className="text-xl font-semibold text-center mb-4 text-slate-300 tracking-tight">Day-of-Week Return</h3>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={dayOfWeekData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                         <defs>
