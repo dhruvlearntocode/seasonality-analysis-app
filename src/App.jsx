@@ -506,9 +506,27 @@ function App() {
   const metrics = rangeMetrics || fullMetrics;
   const descriptions = rangeMetrics ? rangeMetricDescriptions : metricDescriptions;
   
+  const lineChartDomain = useMemo(() => {
+    if (!seasonalityData) return ['auto', 'auto'];
+    const values = seasonalityData.map(d => d['Average Return']);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const padding = Math.abs(max - min) * 0.1;
+    return [Math.floor(min - padding), Math.ceil(max + padding)];
+  }, [seasonalityData]);
+  
+  const detrendedDomain = useMemo(() => {
+    if (!seasonalityData) return ['auto', 'auto'];
+    const values = seasonalityData.map(d => d['Detrended Average']);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const padding = Math.abs(max - min) * 0.1;
+    return [Math.floor(min - padding), Math.ceil(max + padding)];
+  }, [seasonalityData]);
+
   const monthlyDomain = useMemo(() => {
     if (!monthlyData || monthlyData.length === 0) return [-1, 1];
-    const maxAbs = Math.max(...monthlyData.map(d => Math.abs(d.avgReturn)));
+    const maxAbs = Math.ceil(Math.max(...monthlyData.map(d => Math.abs(d.avgReturn))));
     return [-maxAbs, maxAbs];
   }, [monthlyData]);
 
@@ -573,11 +591,11 @@ function App() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
           >
-            <h1 className="text-5xl font-bold text-slate-100 mb-2" style={{textShadow: '0 0 15px rgba(251, 191, 36, 0.5)'}}>Seasonality</h1>
+            <h1 className="text-5xl font-bold text-slate-100 mb-2 tracking-tight" style={{textShadow: '0 0 15px rgba(251, 191, 36, 0.5)'}}>Seasonality</h1>
             <p className="text-blue-200/70 text-lg mb-12">Orbital Performance Analysis</p>
 
             {/* --- Control Deck & Telemetry --- */}
-            <div className="w-full max-w-4xl bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg p-6 control-panel relative mb-12">
+            <div className="w-full max-w-5xl bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg p-6 control-panel relative mb-16">
                 <form onSubmit={handleFetchSeasonality} className="flex flex-col md:flex-row items-center gap-6">
                     <div className="flex-grow flex items-center gap-3">
                         <Telescope size={24} className="text-blue-300/70"/>
@@ -589,11 +607,11 @@ function App() {
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
                            <label htmlFor="startYear" className="text-sm text-blue-300/70">Start Year</label>
-                           <input id="startYear" type="number" value={startYear} onChange={e => setStartYear(parseInt(e.target.value))} className="w-24 bg-slate-800 border border-slate-700 rounded-sm p-2 text-center text-white" />
+                           <input id="startYear" type="number" value={startYear} onChange={e => setStartYear(parseInt(e.target.value))} className="w-24 bg-slate-800 border border-slate-700 rounded-md p-2 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" />
                         </div>
                         <div className="flex items-center gap-2">
                            <label htmlFor="endYear" className="text-sm text-blue-300/70">End Year</label>
-                           <input id="endYear" type="number" value={endYear} onChange={e => setEndYear(parseInt(e.target.value))} className="w-24 bg-slate-800 border border-slate-700 rounded-sm p-2 text-center text-white" />
+                           <input id="endYear" type="number" value={endYear} onChange={e => setEndYear(parseInt(e.target.value))} className="w-24 bg-slate-800 border border-slate-700 rounded-md p-2 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" />
                         </div>
                     </div>
                     <button 
@@ -627,9 +645,9 @@ function App() {
                   </div>
                 )}
                 {!isLoading && !error && seasonalityData && (
-                    <div className="space-y-12 pb-16">
+                    <div className="space-y-16 pb-16">
                         <div className="h-[400px] relative">
-                            <h2 className="text-2xl font-bold text-center mb-4 text-slate-200">Seasonal Trajectory</h2>
+                            <h2 className="text-3xl font-bold text-center mb-6 text-slate-200 tracking-tight">Seasonal Trajectory</h2>
                              {selectedRange.start !== null && (
                                 <button onClick={resetSelection} className="absolute top-0 right-0 bg-red-500/20 text-white py-1 px-3 rounded-full text-xs flex items-center gap-1 hover:bg-red-500/40 transition-colors z-20">
                                     <XCircle size={14}/>
@@ -637,16 +655,16 @@ function App() {
                                 </button>
                             )}
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={seasonalityData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }} onClick={handleChartClick}>
+                                <AreaChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }} onClick={handleChartClick}>
                                     <defs>
                                         <radialGradient id="starGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
                                             <stop offset="0%" stopColor="#F59E0B" stopOpacity={0.4}/>
                                             <stop offset="100%" stopColor="#F59E0B" stopOpacity={0}/>
                                         </radialGradient>
                                     </defs>
-                                    <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" />
-                                    <XAxis dataKey="name" stroke="#334155" tick={{fontSize: 12}} ticks={['Day 1', 'Day 22', 'Day 43', 'Day 64', 'Day 85', 'Day 106', 'Day 127', 'Day 148', 'Day 169', 'Day 190', 'Day 211', 'Day 232']} tickFormatter={formatXAxis} />
-                                    <YAxis stroke="#334155" tickFormatter={(tick) => `${tick}%`} tick={{fontSize: 12}} />
+                                    <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} />
+                                    <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={['Day 1', 'Day 22', 'Day 43', 'Day 64', 'Day 85', 'Day 106', 'Day 127', 'Day 148', 'Day 169', 'Day 190', 'Day 211', 'Day 232']} tickFormatter={formatXAxis} />
+                                    <YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={lineChartDomain} />
                                     <Tooltip content={<CustomTooltip />} cursor={{stroke: '#F59E0B', strokeWidth: 1, strokeDasharray: '3 3'}}/>
                                     <Area type="monotone" dataKey="Average Return" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/>
                                     
@@ -659,13 +677,13 @@ function App() {
                             </ResponsiveContainer>
                         </div>
 
-                        <div className="h-[400px]">
-                            <h2 className="text-2xl font-bold text-center mb-4 text-slate-200">Detrended Seasonal Path</h2>
+                        <div className="h-[300px]">
+                            <h2 className="text-3xl font-bold text-center mb-6 text-slate-200 tracking-tight">Detrended Seasonal Path</h2>
                              <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={seasonalityData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
-                                    <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" />
-                                    <XAxis dataKey="name" stroke="#334155" tick={{fontSize: 12}} ticks={['Day 1', 'Day 22', 'Day 43', 'Day 64', 'Day 85', 'Day 106', 'Day 127', 'Day 148', 'Day 169', 'Day 190', 'Day 211', 'Day 232']} tickFormatter={formatXAxis} />
-                                    <YAxis stroke="#334155" tickFormatter={(tick) => `${tick}%`} tick={{fontSize: 12}} />
+                                <AreaChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                    <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} />
+                                    <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={['Day 1', 'Day 22', 'Day 43', 'Day 64', 'Day 85', 'Day 106', 'Day 127', 'Day 148', 'Day 169', 'Day 190', 'Day 211', 'Day 232']} tickFormatter={formatXAxis} />
+                                    <YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={detrendedDomain} />
                                     <Tooltip content={<CustomTooltip />} cursor={{stroke: '#F59E0B', strokeWidth: 1, strokeDasharray: '3 3'}}/>
                                     <Area type="monotone" dataKey="Detrended Average" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/>
                                 </AreaChart>
@@ -673,10 +691,10 @@ function App() {
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-                            <div className="h-[400px]">
-                                <h3 className="text-xl font-bold text-center mb-4 text-slate-300">Monthly Return</h3>
+                            <div className="h-[300px]">
+                                <h3 className="text-xl font-semibold text-center mb-4 text-slate-300 tracking-tight">Monthly Return</h3>
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={monthlyData}>
+                                    <BarChart data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                         <defs>
                                             <radialGradient id="barGradientPositive" cx="50%" cy="50%" r="50%">
                                                 <stop offset="0%" stopColor="#FBBF24" stopOpacity={0.7}/>
@@ -687,6 +705,7 @@ function App() {
                                                 <stop offset="100%" stopColor="#334155" stopOpacity={0.3}/>
                                             </linearGradient>
                                         </defs>
+                                        <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} />
                                         <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}}/>
                                         <YAxis stroke="#475569" tickFormatter={(tick) => `${tick}%`} tick={{fontSize: 12}} domain={monthlyDomain} />
                                         <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(251, 191, 36, 0.1)'}}/>
@@ -696,10 +715,10 @@ function App() {
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
-                             <div className="h-[400px]">
-                                <h3 className="text-xl font-bold text-center mb-4 text-slate-300">Day-of-Week Return</h3>
+                             <div className="h-[300px]">
+                                <h3 className="text-xl font-semibold text-center mb-4 text-slate-300 tracking-tight">Day-of-Week Return</h3>
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={dayOfWeekData}>
+                                    <BarChart data={dayOfWeekData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                         <defs>
                                             <radialGradient id="barGradientPositive" cx="50%" cy="50%" r="50%">
                                                 <stop offset="0%" stopColor="#FBBF24" stopOpacity={0.7}/>
@@ -710,6 +729,7 @@ function App() {
                                                 <stop offset="100%" stopColor="#334155" stopOpacity={0.3}/>
                                             </linearGradient>
                                         </defs>
+                                        <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} />
                                         <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}}/>
                                         <YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(3)}%`} tick={{fontSize: 12}} domain={dayOfWeekDomain} />
                                         <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(251, 191, 36, 0.1)'}}/>
