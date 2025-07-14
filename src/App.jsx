@@ -627,7 +627,7 @@ function App() {
                   </div>
                 )}
                 {!isLoading && !error && seasonalityData && (
-                    <div className="space-y-12">
+                    <div className="space-y-12 pb-16">
                         <div className="h-[400px] relative">
                             <h2 className="text-2xl font-bold text-center mb-4 text-slate-200">Seasonal Trajectory</h2>
                              {selectedRange.start !== null && (
@@ -659,8 +659,7 @@ function App() {
                             </ResponsiveContainer>
                         </div>
 
-                        {/* --- Chart 2: Detrended --- */}
-                        <div className="h-[250px]">
+                        <div className="h-[400px]">
                             <h2 className="text-2xl font-bold text-center mb-4 text-slate-200">Detrended Seasonal Path</h2>
                              <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={seasonalityData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
@@ -673,9 +672,8 @@ function App() {
                             </ResponsiveContainer>
                         </div>
                         
-                        {/* --- Sub-Charts --- */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-                            <div className="h-[300px]">
+                            <div className="h-[400px]">
                                 <h3 className="text-xl font-bold text-center mb-4 text-slate-300">Monthly Return</h3>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={monthlyData}>
@@ -698,7 +696,7 @@ function App() {
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
-                             <div className="h-[300px]">
+                             <div className="h-[400px]">
                                 <h3 className="text-xl font-bold text-center mb-4 text-slate-300">Day-of-Week Return</h3>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={dayOfWeekData}>
@@ -722,7 +720,6 @@ function App() {
                                 </ResponsiveContainer>
                             </div>
                         </div>
-                        <div className="py-8"></div>
                     </div>
                 )}
             </div>
