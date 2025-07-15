@@ -411,7 +411,8 @@ function InSeasonPage({
     scannerResults,
     scanCompleted,
     handleScan,
-    scannerError
+    scannerError,
+    strictYears, setStrictYears
 }) {
 
   const [sortConfig, setSortConfig] = useState({ key: 'winRate', direction: 'descending' });
@@ -510,7 +511,15 @@ function InSeasonPage({
         {!scannerIsLoading && scannerError && <div className="text-center py-12 text-red-400">{scannerError}</div>}
         {!scannerIsLoading && !scannerError && scanCompleted && (
           <motion.div initial={{opacity: 0}} animate={{opacity: 1}}>
-            <h2 className="text-2xl font-bold text-center mb-6 text-slate-200 tracking-tight">Scan Results</h2>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-slate-200 tracking-tight">Scan Results</h2>
+                <div className="flex items-center gap-2">
+                    <label htmlFor="strict-toggle" className="text-sm text-blue-300/70">Strict Years</label>
+                    <button id="strict-toggle" type="button" onClick={() => setStrictYears(!strictYears)} className={`relative inline-flex items-center h-8 rounded-full w-14 transition-colors ${strictYears ? 'bg-amber-500' : 'bg-slate-700'}`}>
+                        <span className={`inline-block w-6 h-6 transform bg-white rounded-full transition-transform ${strictYears ? 'translate-x-7' : 'translate-x-1'}`} />
+                    </button>
+                </div>
+            </div>
             {sortedResults.length > 0 ? (
               <div className="overflow-x-auto bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg">
                 <table className="min-w-full divide-y divide-slate-700">
@@ -582,6 +591,7 @@ function App() {
   const [scannerResults, setScannerResults] = useState([]);
   const [scanCompleted, setScanCompleted] = useState(false);
   const [scannerError, setScannerError] = useState('');
+  const [strictYears, setStrictYears] = useState(false);
 
   // --- Logic for SeasonalityPage ---
   useEffect(() => {
@@ -777,7 +787,11 @@ function App() {
         const dataKey = `${forwardMonths}m_${seasonalityYears}y`;
         const permutationResults = allScanData[dataKey] || [];
 
-        const successfulTickers = permutationResults.filter(metrics => metrics.winRate >= threshold);
+        let successfulTickers = permutationResults.filter(metrics => metrics.winRate >= threshold);
+        
+        if (strictYears) {
+            successfulTickers = successfulTickers.filter(metrics => metrics.yearsOfData >= seasonalityYears);
+        }
         
         setScannerResults(successfulTickers);
         setScanCompleted(true);
@@ -860,6 +874,8 @@ function App() {
                         scanCompleted={scanCompleted}
                         handleScan={handleScan}
                         scannerError={scannerError}
+                        strictYears={strictYears}
+                        setStrictYears={setStrictYears}
                     />
                 )}
               </motion.div>
@@ -873,6 +889,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
