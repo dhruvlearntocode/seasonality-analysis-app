@@ -1,5 +1,5 @@
 # FILE: .github/workflows/seasonality_cron.yml
-# --- Updated to install the yfinance library ---
+# --- Updated to grant write permissions ---
 
 name: Calculate Daily Seasonality
 
@@ -11,6 +11,10 @@ on:
 
 jobs:
   calculate-and-commit:
+    # --- FIX: Add permissions block to allow the job to write to the repository ---
+    permissions:
+      contents: write
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -24,7 +28,6 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          # Added 'yfinance' to the list of packages to install
           pip install requests pandas numpy yfinance
 
       - name: Run Seasonality Calculation Script
