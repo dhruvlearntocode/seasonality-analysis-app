@@ -1,5 +1,5 @@
 # FILE: worker/calculate_seasonality.py
-# --- Optimized to reduce API calls by fetching once and slicing data ---
+# --- FIX: Corrected date/timezone handling to resolve empty JSON issue ---
 
 # Step 1: Import necessary libraries
 import yfinance as yf
@@ -17,45 +17,51 @@ OUTPUT_FILE = os.path.join(PROJECT_ROOT, 'public', 'scan_results.json')
 
 # --- Configuration Variables ---
 FORWARD_PERIODS_MONTHS = [1, 2, 3]
-# Ensure the lookback periods are sorted from longest to shortest
 LOOKBACK_PERIODS_YEARS = sorted([5, 10, 20], reverse=True) 
-MAX_LOOKBACK = LOOKBACK_PERIODS_YEARS[0] # The longest period, e.g., 20
+MAX_LOOKBACK = LOOKBACK_PERIODS_YEARS[0]
 
 # --- Helper Function to Fetch Price Data ---
 def fetch_max_price_history(ticker):
     """
-    Fetches historical daily price data for a given ticker for the maximum lookback period.
+    Fetches historical daily price data using the recommended yf.Ticker object.
+    This method correctly handles dividend and split adjustments.
     """
     print(f"    - Fetching max ({MAX_LOOKBACK} years) data for {ticker}...")
     end_date = datetime.now()
     start_date = end_date - timedelta(days=MAX_LOOKBACK * 365.25)
     
-    data = yf.download(ticker, start=start_date, end=end_date, progress=False, auto_adjust=True)
+    stock_ticker = yf.Ticker(ticker)
+    data = stock_ticker.history(start=start_date, end=end_date, auto_adjust=True)
     
     if data.empty:
         raise ValueError(f"No data returned for ticker {ticker}.")
     
+    # --- FIX: Remove timezone information to prevent comparison errors ---
+    # This makes the index "timezone-naive", matching the naive datetime objects we create later.
+    data.index = data.index.tz_localize(None)
+    
     return data['Close']
 
 # --- Core Logic to Calculate Metrics for a Single Ticker ---
-def calculate_metrics_for_ticker(prices, forward_months):
+def calculate_metrics_for_ticker(prices, forward_months, today):
     """
-    Calculates all performance metrics for a single ticker's price history for a given forward period.
+    Calculates all performance metrics for a single ticker's price history.
+    'today' is passed in to ensure the date is consistent throughout the entire scan.
     """
-    today = datetime.now()
     forward_days = forward_months * 21
     all_returns = []
     
     if prices.empty:
         return None
 
-    # Determine the actual start year from the provided price data slice
     start_year_of_data = prices.index.year.min()
 
     for year in range(start_year_of_data, today.year):
+        # Create a timezone-naive datetime object for the target date in a past year.
         start_date_past = datetime(year, today.month, today.day)
         
         try:
+            # searchsorted works reliably with two naive datetime objects.
             actual_start_idx = prices.index.searchsorted(start_date_past)
             actual_end_idx = actual_start_idx + forward_days
 
@@ -90,39 +96,36 @@ def calculate_metrics_for_ticker(prices, forward_months):
 # --- Main Execution Block (Optimized) ---
 def run_scan():
     """
-    Orchestrates the entire process with optimized API calls.
+    Orchestrates the entire process with optimized API calls and correct date handling.
     """
-    print("Starting daily seasonality scan...")
+    # --- FIX: Define 'today' once at the start for consistency ---
+    today = datetime.today()
+    print(f"Starting daily seasonality scan for date: {today.strftime('%Y-%m-%d')}")
+
     with open(TICKER_FILE, 'r') as f:
         tickers = [line.strip() for line in f.readlines() if line.strip()]
     
-    # Initialize the results dictionary structure
     all_results = {}
     for lookback in LOOKBACK_PERIODS_YEARS:
         for forward in FORWARD_PERIODS_MONTHS:
             key = f"{forward}m_{lookback}y"
             all_results[key] = []
 
-    # Main loop is now by ticker, not by permutation
     for ticker in tickers:
         print(f"\n[Processing Ticker: {ticker}]")
         try:
-            # Step 1: Fetch data ONCE for the max lookback period
             max_prices = fetch_max_price_history(ticker)
             
-            # Step 2: Loop through the lookback periods and slice the data
             for lookback in LOOKBACK_PERIODS_YEARS:
                 print(f"  - Analyzing for {lookback}-year lookback period...")
                 
-                # Slice the dataframe to get the last N years of data.
-                # This handles cases where a stock has less than the max history.
-                lookback_start_date = datetime.now() - timedelta(days=lookback * 365.25)
+                lookback_start_date = today - timedelta(days=lookback * 365.25)
                 prices_for_lookback = max_prices[max_prices.index >= lookback_start_date]
                 
-                # Step 3: Loop through the forward periods and calculate metrics
                 for forward in FORWARD_PERIODS_MONTHS:
                     key = f"{forward}m_{lookback}y"
-                    metrics = calculate_metrics_for_ticker(prices_for_lookback, forward)
+                    # Pass 'today' into the function
+                    metrics = calculate_metrics_for_ticker(prices_for_lookback, forward, today)
                     
                     if metrics:
                         metrics['ticker'] = ticker
