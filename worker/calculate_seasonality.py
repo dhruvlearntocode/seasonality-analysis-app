@@ -1,30 +1,37 @@
 # FILE: worker/calculate_seasonality.py
-# --- FIX: Corrected date/timezone handling to resolve empty JSON issue ---
+# --- Optimized for multiple asset classes and robust fetching ---
 
-# Step 1: Import necessary libraries
 import yfinance as yf
 import pandas as pd
 import numpy as np
 import json
 from datetime import datetime, timedelta
 import os
+import time
 
-# Step 2: Build robust file paths
+# --- Configuration ---
+# Get the absolute path of the directory where this script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Get the project root directory by going one level up
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
-TICKER_FILE = os.path.join(PROJECT_ROOT, 'worker', 'tickers.txt')
+
+# Define paths using the project root to ensure they are always correct
 OUTPUT_FILE = os.path.join(PROJECT_ROOT, 'public', 'scan_results.json')
 
-# --- Configuration Variables ---
+# Define the asset classes and their corresponding ticker files
+ASSET_CONFIGS = [
+    {'name': 'Stocks', 'file': os.path.join(PROJECT_ROOT, 'worker', 'stocks.txt')},
+    {'name': 'ETFs', 'file': os.path.join(PROJECT_ROOT, 'worker', 'etfs.txt')}
+]
+
 FORWARD_PERIODS_MONTHS = [1, 2, 3]
-LOOKBACK_PERIODS_YEARS = sorted([5, 10, 20], reverse=True) 
+LOOKBACK_PERIODS_YEARS = sorted([5, 10, 20], reverse=True)
 MAX_LOOKBACK = LOOKBACK_PERIODS_YEARS[0]
 
 # --- Helper Function to Fetch Price Data ---
-def fetch_max_price_history(ticker):
+def fetch_price_history(ticker):
     """
-    Fetches historical daily price data using the recommended yf.Ticker object.
-    This method correctly handles dividend and split adjustments.
+    Fetches historical daily price data for a single ticker for the maximum lookback period.
     """
     print(f"    - Fetching max ({MAX_LOOKBACK} years) data for {ticker}...")
     end_date = datetime.now()
@@ -36,8 +43,7 @@ def fetch_max_price_history(ticker):
     if data.empty:
         raise ValueError(f"No data returned for ticker {ticker}.")
     
-    # --- FIX: Remove timezone information to prevent comparison errors ---
-    # This makes the index "timezone-naive", matching the naive datetime objects we create later.
+    # Remove timezone information to prevent comparison errors
     data.index = data.index.tz_localize(None)
     
     return data['Close']
@@ -46,22 +52,23 @@ def fetch_max_price_history(ticker):
 def calculate_metrics_for_ticker(prices, forward_months, today):
     """
     Calculates all performance metrics for a single ticker's price history.
-    'today' is passed in to ensure the date is consistent throughout the entire scan.
     """
     forward_days = forward_months * 21
     all_returns = []
     
+    if prices.empty or prices.isnull().all():
+        return None
+
+    prices = prices.dropna()
     if prices.empty:
         return None
 
     start_year_of_data = prices.index.year.min()
 
     for year in range(start_year_of_data, today.year):
-        # Create a timezone-naive datetime object for the target date in a past year.
         start_date_past = datetime(year, today.month, today.day)
         
         try:
-            # searchsorted works reliably with two naive datetime objects.
             actual_start_idx = prices.index.searchsorted(start_date_past)
             actual_end_idx = actual_start_idx + forward_days
 
@@ -93,53 +100,76 @@ def calculate_metrics_for_ticker(prices, forward_months, today):
         'yearsOfData': len(all_returns)
     }
 
-# --- Main Execution Block (Optimized) ---
+# --- Main Execution Block ---
 def run_scan():
     """
-    Orchestrates the entire process with optimized API calls and correct date handling.
+    Orchestrates the entire process with one-by-one API calls for robustness.
     """
-    # --- FIX: Define 'today' once at the start for consistency ---
     today = datetime.today()
     print(f"Starting daily seasonality scan for date: {today.strftime('%Y-%m-%d')}")
-
-    with open(TICKER_FILE, 'r') as f:
-        tickers = [line.strip() for line in f.readlines() if line.strip()]
     
-    all_results = {}
-    for lookback in LOOKBACK_PERIODS_YEARS:
-        for forward in FORWARD_PERIODS_MONTHS:
-            key = f"{forward}m_{lookback}y"
-            all_results[key] = []
+    final_output = {}
 
-    for ticker in tickers:
-        print(f"\n[Processing Ticker: {ticker}]")
+    for config in ASSET_CONFIGS:
+        asset_name = config['name']
+        ticker_file = config['file']
+        print(f"\n========================================")
+        print(f"Processing Asset Class: {asset_name}")
+        print(f"========================================")
+
         try:
-            max_prices = fetch_max_price_history(ticker)
-            
-            for lookback in LOOKBACK_PERIODS_YEARS:
-                print(f"  - Analyzing for {lookback}-year lookback period...")
+            with open(ticker_file, 'r') as f:
+                tickers = [line.strip().upper() for line in f.readlines() if line.strip()]
+        except FileNotFoundError:
+            print(f"  - WARNING: Ticker file not found at {ticker_file}. Skipping this asset class.")
+            continue
+
+        if not tickers:
+            print(f"  - INFO: No tickers found in {ticker_file}. Skipping.")
+            continue
+        
+        # Initialize the results structure for this asset class
+        asset_results = {}
+        for lookback in LOOKBACK_PERIODS_YEARS:
+            for forward in FORWARD_PERIODS_MONTHS:
+                key = f"{forward}m_{lookback}y"
+                asset_results[key] = []
+        
+        for ticker in tickers:
+            print(f"\n[Processing Ticker: {ticker}]")
+            try:
+                # Fetch data for the single ticker
+                prices = fetch_price_history(ticker)
                 
-                lookback_start_date = today - timedelta(days=lookback * 365.25)
-                prices_for_lookback = max_prices[max_prices.index >= lookback_start_date]
-                
-                for forward in FORWARD_PERIODS_MONTHS:
-                    key = f"{forward}m_{lookback}y"
-                    # Pass 'today' into the function
-                    metrics = calculate_metrics_for_ticker(prices_for_lookback, forward, today)
+                # Loop through lookback periods and slice the in-memory data
+                for lookback in LOOKBACK_PERIODS_YEARS:
+                    lookback_start_date = today - timedelta(days=lookback * 365.25)
+                    prices_for_lookback = prices[prices.index >= lookback_start_date]
                     
-                    if metrics:
-                        metrics['ticker'] = ticker
-                        all_results[key].append(metrics)
+                    # Loop through forward periods and calculate metrics
+                    for forward in FORWARD_PERIODS_MONTHS:
+                        key = f"{forward}m_{lookback}y"
+                        metrics = calculate_metrics_for_ticker(prices_for_lookback, forward, today)
                         
-        except Exception as e:
-            print(f"  --> ERROR: Could not process {ticker}. Reason: {e}")
+                        if metrics:
+                            metrics['ticker'] = ticker
+                            asset_results[key].append(metrics)
+                
+                print(f"  - SUCCESS: Finished all permutations for {ticker}.")
+                # Add a small delay to be respectful to the API provider
+                time.sleep(0.5) 
+
+            except Exception as e:
+                print(f"  --> ERROR processing {ticker}. Reason: {e}")
+        
+        final_output[asset_name] = asset_results
 
     output_dir = os.path.dirname(OUTPUT_FILE)
     os.makedirs(output_dir, exist_ok=True)
     
-    print(f"\nWriting results to {OUTPUT_FILE}...")
+    print(f"\nWriting combined results to {OUTPUT_FILE}...")
     with open(OUTPUT_FILE, 'w') as f:
-        json.dump(all_results, f, indent=2)
+        json.dump(final_output, f, indent=2)
         
     print(f"✅ Scan complete. Results saved successfully.")
 
