@@ -499,7 +499,7 @@ function InSeasonPage({
               className="bg-amber-500 hover:bg-amber-400 text-amber-900 font-bold py-2 px-6 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-full shadow-[0_0_20px_rgba(251,191,36,0.5)] flex items-center justify-center gap-2"
           >
               <Zap size={18}/>
-              {scannerIsLoading ? 'LOADING...' : 'SCAN'}
+              {scannerIsLoading ? 'SCANNING...' : 'SCAN'}
           </button>
         </div>
       </form>
@@ -761,22 +761,28 @@ function App() {
         return;
     }
     
+    setScannerIsLoading(true);
     setScannerError('');
     setScanCompleted(false);
 
     const threshold = parseInt(winRateThreshold, 10);
     if (isNaN(threshold)) {
         setScannerError("Win Rate Threshold must be a valid number.");
+        setScannerIsLoading(false);
         return;
     }
-
-    const dataKey = `${forwardMonths}m_${seasonalityYears}y`;
-    const permutationResults = allScanData[dataKey] || [];
-
-    const successfulTickers = permutationResults.filter(metrics => metrics.winRate >= threshold);
     
-    setScannerResults(successfulTickers);
-    setScanCompleted(true);
+    // Simulate a quick process to ensure the loading state is visible
+    setTimeout(() => {
+        const dataKey = `${forwardMonths}m_${seasonalityYears}y`;
+        const permutationResults = allScanData[dataKey] || [];
+
+        const successfulTickers = permutationResults.filter(metrics => metrics.winRate >= threshold);
+        
+        setScannerResults(successfulTickers);
+        setScanCompleted(true);
+        setScannerIsLoading(false);
+    }, 50);
   };
 
   // --- Navigation ---
@@ -867,5 +873,6 @@ function App() {
 }
 
 export default App;
+
 
 
