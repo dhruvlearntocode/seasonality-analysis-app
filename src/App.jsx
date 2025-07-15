@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react';
 import React, { useState, useMemo, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area, BarChart, Bar, Cell, ReferenceLine, ReferenceArea } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -539,6 +540,7 @@ function App() {
 
   return (
     <>
+      <Analytics />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         body { 
