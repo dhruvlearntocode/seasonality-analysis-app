@@ -1,7 +1,7 @@
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import React, { useState, useMemo, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area, BarChart, Bar, Cell, ReferenceLine, ReferenceArea } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area, BarChart, Bar, Cell, ReferenceLine, ReferenceArea, ComposedChart } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, BarChart2, TrendingUp, TrendingDown, Percent, AlertCircle, Telescope, CheckCircle, Sparkles, Bot, Calendar, XCircle, Zap, ShieldCheck, ArrowDown, ArrowUp, ChevronDown } from 'lucide-react';
 
@@ -20,7 +20,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-black/30 backdrop-blur-sm p-3 border border-blue-300/20 shadow-2xl text-xs rounded-lg">
         <div className="space-y-1">
             {sortedPayload.map((p, index) => (
-              <p key={index} style={{ color: p.name === 'Average Return' || p.name === 'Detrended Average' ? '#FBBF24' : '#E5E7EB', fontWeight: p.name === 'Average Return' ? '600' : '400' }} className="flex justify-between items-center">
+              <p key={index} style={{ color: p.name === 'Average Return' || p.name === 'Detrended Average' ? '#FBBF24' : p.name === 'Current Year' ? '#a78bfa' : '#E5E7EB', fontWeight: p.name === 'Average Return' || p.name === 'Current Year' ? '600' : '400' }} className="flex justify-between items-center">
                 <span>{p.name}:</span>
                 <span className="font-semibold ml-4">{p.value}%</span>
               </p>
@@ -47,29 +47,37 @@ const LoadingSpinner = ({text = "Calibrating Trajectory"}) => (
 
 // --- Seasonality Page Components & Logic ---
 
-const calculateTradingDaySeasonality = (dailyData, startYear, endYear) => {
+const calculateTradingDaySeasonality = (dailyData, userStartYear, userEndYear) => {
   if (!dailyData || Object.keys(dailyData).length === 0) return null;
   const TRADING_DAYS = 251;
-
+  
   const dataByYear = {};
   for (const dateStr in dailyData) {
     const year = parseInt(dateStr.substring(0, 4), 10);
-    if (year >= startYear && year <= endYear) {
-      if (!dataByYear[year]) dataByYear[year] = [];
-      dataByYear[year].push({ date: new Date(dateStr), price: dailyData[dateStr]['4. close'] });
-    }
+    // The full dataset is passed in, so we don't filter by year here yet.
+    if (!dataByYear[year]) dataByYear[year] = [];
+    dataByYear[year].push({ date: new Date(dateStr), price: dailyData[dateStr]['4. close'] });
   }
 
   for (const year in dataByYear) {
     dataByYear[year].sort((a, b) => a.date - b.date);
   }
 
-  const yearKeys = Object.keys(dataByYear).sort();
+  const allYearKeys = Object.keys(dataByYear).sort();
+  const mostRecentYear = allYearKeys.length > 0 ? allYearKeys[allYearKeys.length - 1] : null;
+  
+  // *** FIX: Use the user-defined range for historical average calculation ***
+  const pastYearKeys = allYearKeys.filter(y => {
+      const yearNum = parseInt(y, 10);
+      return yearNum >= userStartYear && yearNum <= userEndYear && y !== mostRecentYear;
+  });
+
+  const tradingDaysSoFar = mostRecentYear ? (dataByYear[mostRecentYear]?.length || 0) : 0;
 
   const simpleReturnsByYear = {};
-  yearKeys.forEach(year => {
-    const yearData = dataByYear[year].slice(0, TRADING_DAYS);
-    if (yearData.length > 0) {
+  allYearKeys.forEach(year => {
+    const yearData = dataByYear[year];
+    if (yearData && yearData.length > 0) {
       const basePrice = yearData[0].price;
       simpleReturnsByYear[year] = yearData.map(day => 100 * (day.price / basePrice - 1));
     }
@@ -80,7 +88,8 @@ const calculateTradingDaySeasonality = (dailyData, startYear, endYear) => {
       dailyLogReturnsByDayNum[i] = [];
   }
 
-  yearKeys.forEach(year => {
+  // Use the correctly filtered pastYearKeys for the average
+  pastYearKeys.forEach(year => {
       const yearData = dataByYear[year].slice(0, TRADING_DAYS + 1);
       if (yearData.length < 2) return;
 
@@ -113,11 +122,11 @@ const calculateTradingDaySeasonality = (dailyData, startYear, endYear) => {
   for (let i = 0; i < TRADING_DAYS; i++) {
       const dayData = { name: `Day ${i + 1}`, index: i };
       
-      yearKeys.forEach(year => {
-          if (simpleReturnsByYear[year] && simpleReturnsByYear[year][i] !== undefined) {
-              dayData[year] = parseFloat(simpleReturnsByYear[year][i].toFixed(2));
-          }
-      });
+      if (mostRecentYear && i < tradingDaysSoFar && simpleReturnsByYear[mostRecentYear] && simpleReturnsByYear[mostRecentYear][i] !== undefined) {
+          dayData['Current Year'] = parseFloat(simpleReturnsByYear[mostRecentYear][i].toFixed(2));
+      } else {
+          dayData['Current Year'] = null;
+      }
 
       if (averageCumulativePath[i] !== undefined) {
           dayData['Average Return'] = parseFloat(averageCumulativePath[i].toFixed(2));
@@ -134,7 +143,7 @@ const calculateTradingDaySeasonality = (dailyData, startYear, endYear) => {
       d['Detrended Average'] = parseFloat((d['Average Return'] - trendValue).toFixed(2));
   });
 
-  return { chartData: finalChartData, yearKeys };
+  return { chartData: finalChartData, yearKeys: pastYearKeys };
 };
 
 const calculateMonthlyReturns = (dailyData, startYear, endYear) => {
@@ -257,7 +266,8 @@ function SeasonalityPage({
     selectedRange,
     handleFetchSeasonality,
     handleChartClick,
-    resetSelection
+    resetSelection,
+    showCurrentYear, setShowCurrentYear
 }) {
   
   const metricDescriptions = {
@@ -279,12 +289,13 @@ function SeasonalityPage({
   
   const lineChartDomain = useMemo(() => {
     if (!seasonalityData) return ['auto', 'auto'];
-    const values = seasonalityData.flatMap(d => [d['Average Return']]);
+    const values = seasonalityData.flatMap(d => [d['Average Return'], showCurrentYear ? d['Current Year'] : -Infinity]).filter(v => v !== undefined && v !== null && isFinite(v));
+    if (values.length === 0) return ['auto', 'auto'];
     const min = Math.min(...values);
     const max = Math.max(...values);
     const padding = Math.abs(max - min) * 0.1;
     return [Math.floor(min - padding), Math.ceil(max + padding)];
-  }, [seasonalityData]);
+  }, [seasonalityData, showCurrentYear]);
   
   const detrendedDomain = useMemo(() => {
     if (!seasonalityData) return ['auto', 'auto'];
@@ -364,24 +375,33 @@ function SeasonalityPage({
               <div className="pb-16">
                   <div className="h-[400px] relative">
                       <h2 className="text-3xl font-bold text-center mb-6 text-slate-200 tracking-tight">Seasonal Trajectory</h2>
-                      {selectedRange.start !== null && (
-                          <button onClick={resetSelection} className="absolute top-0 right-0 bg-red-500/20 text-white py-1 px-3 rounded-full text-xs flex items-center gap-1 hover:bg-red-500/40 transition-colors z-20">
-                              <XCircle size={14}/>
-                              Reset Selection
-                          </button>
-                      )}
+                      <div className="absolute top-0 right-0 flex flex-col items-end gap-2 z-20">
+                        {selectedRange.start !== null && (
+                            <button onClick={resetSelection} className="bg-red-500/20 text-white py-1 px-3 rounded-full text-xs flex items-center gap-1 hover:bg-red-500/40 transition-colors">
+                                <XCircle size={14}/>
+                                Reset Selection
+                            </button>
+                        )}
+                        <div className="flex items-center gap-2">
+                            <label htmlFor="current-year-toggle" className="text-xs text-blue-300/70">Show Current Year</label>
+                            <button id="current-year-toggle" type="button" onClick={() => setShowCurrentYear(!showCurrentYear)} className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors ${showCurrentYear ? 'bg-amber-500' : 'bg-slate-700'}`}>
+                                <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${showCurrentYear ? 'translate-x-6' : 'translate-x-1'}`} />
+                            </button>
+                        </div>
+                      </div>
                       <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }} onClick={handleChartClick}>
+                          <ComposedChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }} onClick={handleChartClick}>
                               <defs><radialGradient id="starGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%"><stop offset="0%" stopColor="#FBBF24" stopOpacity={0.4}/><stop offset="100%" stopColor="#F59E0B" stopOpacity={0}/></radialGradient></defs>
                               <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} />
                               <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={['Day 1', 'Day 22', 'Day 43', 'Day 64', 'Day 85', 'Day 106', 'Day 127', 'Day 148', 'Day 169', 'Day 190', 'Day 211', 'Day 232']} tickFormatter={formatXAxis} />
                               <YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={lineChartDomain} />
                               <Tooltip content={<CustomTooltip />} cursor={{stroke: '#F59E0B', strokeWidth: 1, strokeDasharray: '3 3'}}/>
                               <Area type="monotone" dataKey="Average Return" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/>
+                              {showCurrentYear && <Line type="monotone" dataKey="Current Year" stroke="#a78bfa" strokeWidth={3} dot={false} connectNulls={false} filter="drop-shadow(0 0 10px #a78bfa)" />}
                               {selectedRange.start !== null && <ReferenceLine x={seasonalityData[selectedRange.start].name} stroke="#38bdf8" strokeWidth={2} />}
                               {selectedRange.end !== null && <ReferenceLine x={seasonalityData[selectedRange.end].name} stroke="#38bdf8" strokeWidth={2} />}
                               {selectedRange.start !== null && selectedRange.end !== null && <ReferenceArea x1={seasonalityData[selectedRange.start].name} x2={seasonalityData[selectedRange.end].name} stroke="#38bdf8" strokeOpacity={0.5} fill="#38bdf8" fillOpacity={0.1} />}
-                          </AreaChart>
+                          </ComposedChart>
                       </ResponsiveContainer>
                   </div>
 
@@ -591,6 +611,7 @@ function App() {
   const [selectedRange, setSelectedRange] = useState({ start: null, end: null });
   const [priceDataByYear, setPriceDataByYear] = useState(null);
   const [refetchTrigger, setRefetchTrigger] = useState(0);
+  const [showCurrentYear, setShowCurrentYear] = useState(false);
 
   // --- State for InSeasonPage ---
   const [allScanData, setAllScanData] = useState(null);
@@ -651,7 +672,7 @@ function App() {
     setPriceDataByYear(null);
 
     const fetchStartDate = new Date(startYearNum, 0, 1);
-    const fetchEndDate = new Date(endYearNum + 1, 0, 1);
+    const fetchEndDate = new Date(); // Always fetch up to today
     const period1 = Math.floor(fetchStartDate.getTime() / 1000);
     const period2 = Math.floor(fetchEndDate.getTime() / 1000);
     
@@ -674,9 +695,8 @@ function App() {
       if (!result || !timestamps || !adjClose || timestamps.length === 0) throw new Error('No valid historical data returned for the specified range.');
       
       const firstActualYear = new Date(timestamps[0] * 1000).getFullYear();
-      const lastActualYear = new Date(timestamps[timestamps.length - 1] * 1000).getFullYear();
-      setStartYear(firstActualYear);
-      setEndYear(lastActualYear);
+      // We keep the user's end year for calculations, not the fetched end year
+      // setEndYear(lastActualYear);
 
       const formattedDailyData = {};
       for (let i = 0; i < timestamps.length; i++) {
@@ -697,18 +717,18 @@ function App() {
       for (const year in dataByYear) { dataByYear[year].sort((a, b) => a.date - b.date); }
       setPriceDataByYear(dataByYear);
 
-      const calculatedData = calculateTradingDaySeasonality(formattedDailyData, firstActualYear, lastActualYear);
+      const calculatedData = calculateTradingDaySeasonality(formattedDailyData, startYearNum, endYearNum);
       if (calculatedData === null || calculatedData.chartData.length === 0) throw new Error("Calculation failed: Could not process seasonality from data.");
       
       setSeasonalityData(calculatedData.chartData);
-      setMonthlyData(calculateMonthlyReturns(formattedDailyData, firstActualYear, lastActualYear));
+      setMonthlyData(calculateMonthlyReturns(formattedDailyData, startYearNum, endYearNum));
       setDayOfWeekData(calculateDayOfWeekReturns(formattedDailyData));
 
       const lastDataPoint = calculatedData.chartData[calculatedData.chartData.length - 1];
       const annualizedReturn = lastDataPoint['Average Return'] || 0;
       let positiveYearsCount = 0;
-      const totalYears = lastActualYear - firstActualYear + 1;
-      for (let year = firstActualYear; year <= lastActualYear; year++) {
+      const totalYears = endYearNum - startYearNum + 1;
+      for (let year = startYearNum; year <= endYearNum; year++) {
           const yearData = Object.entries(formattedDailyData).filter(([date]) => date.startsWith(year.toString())).sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB));
           if (yearData.length > 1) {
               const firstDayPrice = yearData[0][1]['4. close'];
@@ -845,7 +865,7 @@ function App() {
   return (
     <>
       <Analytics />
-	    <SpeedInsights />
+      <SpeedInsights />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         body { font-family: 'Exo 2', sans-serif; background-color: #010409; color: #E5E7EB; }
@@ -891,6 +911,8 @@ function App() {
                         handleFetchSeasonality={handleFetchSeasonality}
                         handleChartClick={handleChartClick}
                         resetSelection={resetSelection}
+                        showCurrentYear={showCurrentYear}
+                        setShowCurrentYear={setShowCurrentYear}
                     />
                 )}
                 {page === 'in-season' && (
