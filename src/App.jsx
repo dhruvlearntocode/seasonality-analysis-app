@@ -324,11 +324,11 @@ function SeasonalityPage({
               <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                       <label htmlFor="startYear" className="text-sm text-blue-300/70">Start</label>
-                      <input id="startYear" type="number" value={startYear} onChange={e => setStartYear(parseInt(e.target.value))} className="w-24 bg-slate-800 border border-slate-700 rounded-md p-2 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+                      <input id="startYear" type="number" value={startYear} onChange={e => setStartYear(e.target.value === '' ? '' : parseInt(e.target.value, 10))} className="w-24 bg-slate-800 border border-slate-700 rounded-md p-2 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" />
                   </div>
                   <div className="flex items-center gap-2">
                       <label htmlFor="endYear" className="text-sm text-blue-300/70">End</label>
-                      <input id="endYear" type="number" value={endYear} onChange={e => setEndYear(parseInt(e.target.value))} className="w-24 bg-slate-800 border border-slate-700 rounded-md p-2 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" />
+                      <input id="endYear" type="number" value={endYear} onChange={e => setEndYear(e.target.value === '' ? '' : parseInt(e.target.value, 10))} className="w-24 bg-slate-800 border border-slate-700 rounded-md p-2 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" />
                   </div>
               </div>
               <button 
@@ -417,10 +417,17 @@ function InSeasonPage({
 
   const [sortConfig, setSortConfig] = useState({ key: 'winRate', direction: 'descending' });
 
-  const sortedResults = useMemo(() => {
-    let sortableItems = [...scannerResults];
+  const displayedResults = useMemo(() => {
+    if (!scanCompleted) return [];
+    
+    let filtered = [...scannerResults];
+
+    if (strictYears) {
+        filtered = filtered.filter(item => item.yearsOfData >= seasonalityYears);
+    }
+    
     if (sortConfig !== null) {
-      sortableItems.sort((a, b) => {
+      filtered.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
@@ -430,8 +437,8 @@ function InSeasonPage({
         return 0;
       });
     }
-    return sortableItems;
-  }, [scannerResults, sortConfig]);
+    return filtered;
+  }, [scannerResults, sortConfig, strictYears, seasonalityYears, scanCompleted]);
 
   const requestSort = (key) => {
     let direction = 'descending';
@@ -520,7 +527,7 @@ function InSeasonPage({
                     </button>
                 </div>
             </div>
-            {sortedResults.length > 0 ? (
+            {displayedResults.length > 0 ? (
               <div className="overflow-x-auto bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg">
                 <table className="min-w-full divide-y divide-slate-700">
                     <thead className="bg-slate-800/50">
@@ -534,7 +541,7 @@ function InSeasonPage({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                        {sortedResults.map((item) => (
+                        {displayedResults.map((item) => (
                             <tr key={item.ticker} className="hover:bg-slate-800/40 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-amber-400">{item.ticker}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">{item.winRate.toFixed(1)}%</td>
@@ -627,7 +634,9 @@ function App() {
   const handleFetchSeasonality = async (e) => {
     if (e) e.preventDefault();
     if (!ticker) { setSeasonalityError('Please provide a stock ticker.'); return; }
-    if (isNaN(startYear) || isNaN(endYear) || startYear > endYear) { setSeasonalityError('Please enter a valid year range.'); return; }
+    const startYearNum = parseInt(startYear, 10);
+    const endYearNum = parseInt(endYear, 10);
+    if (isNaN(startYearNum) || isNaN(endYearNum) || startYearNum > endYearNum) { setSeasonalityError('Please enter a valid year range.'); return; }
     
     setSeasonalityIsLoading(true);
     setSeasonalityError('');
@@ -637,8 +646,8 @@ function App() {
     setSelectedRange({ start: null, end: null });
     setPriceDataByYear(null);
 
-    const fetchStartDate = new Date(startYear, 0, 1);
-    const fetchEndDate = new Date(parseInt(endYear, 10) + 1, 0, 1);
+    const fetchStartDate = new Date(startYearNum, 0, 1);
+    const fetchEndDate = new Date(endYearNum + 1, 0, 1);
     const period1 = Math.floor(fetchStartDate.getTime() / 1000);
     const period2 = Math.floor(fetchEndDate.getTime() / 1000);
     
@@ -648,7 +657,11 @@ function App() {
 
     try {
       const response = await fetch(url);
-      if (!response.ok) throw new Error(`Network response error (status: ${response.status})`);
+      if (!response.ok) {
+          const errorText = await response.text().catch(() => "Could not read error response.");
+          throw new Error(`Network response error (status: ${response.status}). Body: ${errorText.substring(0, 200)}`);
+      }
+      
       const data = await response.json();
       if (!data || !data.chart || data.chart.error) throw new Error(data?.chart?.error?.description || 'API Error: Invalid ticker or data format.');
       const result = data.chart.result?.[0];
@@ -741,7 +754,10 @@ function App() {
                 const endPrice = yearData[endDayIndex]?.price;
                 if (startPrice && endPrice && startPrice > 0) {
                     validYearsCount++;
-                    if (Math.log(endPrice / startPrice) > 0) { positiveYearsCount++; }
+                    const logReturn = Math.log(endPrice / startPrice);
+                    if (logReturn > 0) {
+                        positiveRangeYearsCount++;
+                    }
                 }
             }
         });
@@ -755,7 +771,12 @@ function App() {
         const mean = returnsInRange.reduce((a, b) => a + b, 0) / returnsInRange.length;
         const variance = returnsInRange.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / returnsInRange.length;
         const rangeFlux = Math.sqrt(variance);
-        setRangeMetrics({ rangeReturn: rangeReturn.toFixed(2), rangeWinRate: rangeWinRate.toFixed(1), rangeMagnitude: rangeMagnitude.toFixed(2), rangeFlux: rangeFlux.toFixed(2) });
+        setRangeMetrics({
+            rangeReturn: rangeReturn.toFixed(2),
+            rangeWinRate: rangeWinRate.toFixed(1),
+            rangeMagnitude: rangeMagnitude.toFixed(2),
+            rangeFlux: rangeFlux.toFixed(2)
+        });
     }
   }, [selectedRange, seasonalityData, priceDataByYear]);
 
@@ -782,16 +803,11 @@ function App() {
         return;
     }
     
-    // Simulate a quick process to ensure the loading state is visible
     setTimeout(() => {
         const dataKey = `${forwardMonths}m_${seasonalityYears}y`;
         const permutationResults = allScanData[dataKey] || [];
 
-        let successfulTickers = permutationResults.filter(metrics => metrics.winRate >= threshold);
-        
-        if (strictYears) {
-            successfulTickers = successfulTickers.filter(metrics => metrics.yearsOfData >= seasonalityYears);
-        }
+        const successfulTickers = permutationResults.filter(metrics => metrics.winRate >= threshold);
         
         setScannerResults(successfulTickers);
         setScanCompleted(true);
@@ -889,6 +905,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
