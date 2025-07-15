@@ -1,11 +1,1460 @@
 {
-  "1m_20y": [],
-  "2m_20y": [],
-  "3m_20y": [],
-  "1m_10y": [],
-  "2m_10y": [],
-  "3m_10y": [],
-  "1m_5y": [],
-  "2m_5y": [],
-  "3m_5y": []
+  "1m_20y": [
+    {
+      "winRate": 75.0,
+      "avgReturn": 5.932804002217337,
+      "maxProfit": 26.885578584321056,
+      "maxLoss": -10.188231077084097,
+      "yearsOfData": 20,
+      "ticker": "AAPL"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 0.9787876548027498,
+      "maxProfit": 14.315222196036114,
+      "maxLoss": -10.265155870064568,
+      "yearsOfData": 20,
+      "ticker": "MSFT"
+    },
+    {
+      "winRate": 45.0,
+      "avgReturn": 1.3582446088128548,
+      "maxProfit": 17.56113810558404,
+      "maxLoss": -11.992709875690267,
+      "yearsOfData": 20,
+      "ticker": "GOOGL"
+    },
+    {
+      "winRate": 55.00000000000001,
+      "avgReturn": 2.474026928551435,
+      "maxProfit": 29.330144459675857,
+      "maxLoss": -17.523021518851635,
+      "yearsOfData": 20,
+      "ticker": "AMZN"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 7.3069682131999825,
+      "maxProfit": 43.29028716751675,
+      "maxLoss": -12.406737839225467,
+      "yearsOfData": 20,
+      "ticker": "NVDA"
+    },
+    {
+      "winRate": 53.333333333333336,
+      "avgReturn": 1.398296479845095,
+      "maxProfit": 28.847545946233176,
+      "maxLoss": -19.774088161517213,
+      "yearsOfData": 15,
+      "ticker": "TSLA"
+    },
+    {
+      "winRate": 69.23076923076923,
+      "avgReturn": 3.6588585163345275,
+      "maxProfit": 40.86756782929544,
+      "maxLoss": -27.8584164204399,
+      "yearsOfData": 13,
+      "ticker": "META"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 1.577169930667637,
+      "maxProfit": 18.987736580267068,
+      "maxLoss": -13.104576071372144,
+      "yearsOfData": 20,
+      "ticker": "JPM"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 0.7195039121300445,
+      "maxProfit": 8.719446307569623,
+      "maxLoss": -6.811413065028549,
+      "yearsOfData": 20,
+      "ticker": "JNJ"
+    },
+    {
+      "winRate": 52.94117647058824,
+      "avgReturn": 0.681564261626602,
+      "maxProfit": 9.792928032724845,
+      "maxLoss": -6.269495985327955,
+      "yearsOfData": 17,
+      "ticker": "V"
+    },
+    {
+      "winRate": 75.0,
+      "avgReturn": 2.120263087835088,
+      "maxProfit": 9.748425689530826,
+      "maxLoss": -6.998751898711197,
+      "yearsOfData": 20,
+      "ticker": "PG"
+    },
+    {
+      "winRate": 52.63157894736842,
+      "avgReturn": 2.272980278751827,
+      "maxProfit": 23.869063254406054,
+      "maxLoss": -21.324655008041404,
+      "yearsOfData": 19,
+      "ticker": "MA"
+    },
+    {
+      "winRate": 55.00000000000001,
+      "avgReturn": 1.4752212694082518,
+      "maxProfit": 23.578735362219394,
+      "maxLoss": -17.3977113957547,
+      "yearsOfData": 20,
+      "ticker": "HD"
+    },
+    {
+      "winRate": 65.0,
+      "avgReturn": 2.9645480575231478,
+      "maxProfit": 41.558463908313506,
+      "maxLoss": -11.602848309196013,
+      "yearsOfData": 20,
+      "ticker": "UNH"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 0.574472640109405,
+      "maxProfit": 30.52521182311605,
+      "maxLoss": -14.311155250690877,
+      "yearsOfData": 20,
+      "ticker": "DIS"
+    },
+    {
+      "winRate": 55.00000000000001,
+      "avgReturn": 3.9198349699624204,
+      "maxProfit": 55.83148100113458,
+      "maxLoss": -22.400002276600826,
+      "yearsOfData": 20,
+      "ticker": "BAC"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.502632114595187,
+      "maxProfit": 22.023184392048933,
+      "maxLoss": -16.89049094731011,
+      "yearsOfData": 20,
+      "ticker": "PFE"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": -0.9496982069623108,
+      "maxProfit": 10.263772307688622,
+      "maxLoss": -9.902914593857426,
+      "yearsOfData": 20,
+      "ticker": "XOM"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 0.22965704343165366,
+      "maxProfit": 13.919374454147171,
+      "maxLoss": -10.497151776291036,
+      "yearsOfData": 20,
+      "ticker": "CVX"
+    },
+    {
+      "winRate": 70.0,
+      "avgReturn": 1.4821146755586738,
+      "maxProfit": 7.96404362585863,
+      "maxLoss": -5.130677078461343,
+      "yearsOfData": 20,
+      "ticker": "KO"
+    }
+  ],
+  "2m_20y": [
+    {
+      "winRate": 70.0,
+      "avgReturn": 7.956149386245795,
+      "maxProfit": 41.62688007232214,
+      "maxLoss": -12.202287258389422,
+      "yearsOfData": 20,
+      "ticker": "AAPL"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 2.0395119211541717,
+      "maxProfit": 17.557724867119795,
+      "maxLoss": -8.984384363580345,
+      "yearsOfData": 20,
+      "ticker": "MSFT"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 0.681052096953618,
+      "maxProfit": 22.80666517696894,
+      "maxLoss": -16.959592039751104,
+      "yearsOfData": 20,
+      "ticker": "GOOGL"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 5.526750562749747,
+      "maxProfit": 20.475905606506583,
+      "maxLoss": -8.77985709065321,
+      "yearsOfData": 20,
+      "ticker": "AMZN"
+    },
+    {
+      "winRate": 70.0,
+      "avgReturn": 11.177855071143645,
+      "maxProfit": 62.773985018537125,
+      "maxLoss": -16.686326728166666,
+      "yearsOfData": 20,
+      "ticker": "NVDA"
+    },
+    {
+      "winRate": 46.666666666666664,
+      "avgReturn": 5.948531431121618,
+      "maxProfit": 35.71064429156308,
+      "maxLoss": -18.020022191628705,
+      "yearsOfData": 15,
+      "ticker": "TSLA"
+    },
+    {
+      "winRate": 69.23076923076923,
+      "avgReturn": 5.098650993569033,
+      "maxProfit": 70.28158492161597,
+      "maxLoss": -26.69026831996364,
+      "yearsOfData": 13,
+      "ticker": "META"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.780899053348852,
+      "maxProfit": 32.720828031405745,
+      "maxLoss": -17.958982676860057,
+      "yearsOfData": 20,
+      "ticker": "JPM"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.1278639229442793,
+      "maxProfit": 12.937898832939698,
+      "maxLoss": -6.993008500732445,
+      "yearsOfData": 20,
+      "ticker": "JNJ"
+    },
+    {
+      "winRate": 58.82352941176471,
+      "avgReturn": 1.5871869359342878,
+      "maxProfit": 16.49111963715246,
+      "maxLoss": -10.69125309559411,
+      "yearsOfData": 17,
+      "ticker": "V"
+    },
+    {
+      "winRate": 75.0,
+      "avgReturn": 3.3493915841292172,
+      "maxProfit": 14.386281830527569,
+      "maxLoss": -16.473170483962495,
+      "yearsOfData": 20,
+      "ticker": "PG"
+    },
+    {
+      "winRate": 57.89473684210527,
+      "avgReturn": 4.364308814534024,
+      "maxProfit": 42.736968003206876,
+      "maxLoss": -17.801023106526802,
+      "yearsOfData": 19,
+      "ticker": "MA"
+    },
+    {
+      "winRate": 65.0,
+      "avgReturn": 4.797981656669835,
+      "maxProfit": 35.32590968032603,
+      "maxLoss": -11.683674486218187,
+      "yearsOfData": 20,
+      "ticker": "HD"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 3.5655744621207455,
+      "maxProfit": 32.60190130332534,
+      "maxLoss": -13.483224907844683,
+      "yearsOfData": 20,
+      "ticker": "UNH"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 0.31784933151282707,
+      "maxProfit": 18.172260965296783,
+      "maxLoss": -17.774366992068337,
+      "yearsOfData": 20,
+      "ticker": "DIS"
+    },
+    {
+      "winRate": 75.0,
+      "avgReturn": 6.421511250059116,
+      "maxProfit": 85.82617275334042,
+      "maxLoss": -29.413046896584383,
+      "yearsOfData": 20,
+      "ticker": "BAC"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 2.55306603299909,
+      "maxProfit": 27.001839562550643,
+      "maxLoss": -11.979461952147707,
+      "yearsOfData": 20,
+      "ticker": "PFE"
+    },
+    {
+      "winRate": 45.0,
+      "avgReturn": -1.0803864581266789,
+      "maxProfit": 17.865021055616293,
+      "maxLoss": -16.237419067215807,
+      "yearsOfData": 20,
+      "ticker": "XOM"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 0.11462680937861185,
+      "maxProfit": 19.690196025219088,
+      "maxLoss": -18.585865112178702,
+      "yearsOfData": 20,
+      "ticker": "CVX"
+    },
+    {
+      "winRate": 65.0,
+      "avgReturn": 2.287850643011725,
+      "maxProfit": 12.332437453862898,
+      "maxLoss": -6.960216653282658,
+      "yearsOfData": 20,
+      "ticker": "KO"
+    }
+  ],
+  "3m_20y": [
+    {
+      "winRate": 70.0,
+      "avgReturn": 9.749400614139343,
+      "maxProfit": 43.24994741784707,
+      "maxLoss": -35.00351942022252,
+      "yearsOfData": 20,
+      "ticker": "AAPL"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.1623719984783336,
+      "maxProfit": 26.665791933475337,
+      "maxLoss": -8.562942740001011,
+      "yearsOfData": 20,
+      "ticker": "MSFT"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.9478814620751246,
+      "maxProfit": 29.539765426623354,
+      "maxLoss": -26.171780780827405,
+      "yearsOfData": 20,
+      "ticker": "GOOGL"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 4.946722920651645,
+      "maxProfit": 27.12600181312188,
+      "maxLoss": -14.303384885796344,
+      "yearsOfData": 20,
+      "ticker": "AMZN"
+    },
+    {
+      "winRate": 75.0,
+      "avgReturn": 12.422330868928835,
+      "maxProfit": 89.6126392556549,
+      "maxLoss": -28.50800219558993,
+      "yearsOfData": 20,
+      "ticker": "NVDA"
+    },
+    {
+      "winRate": 46.666666666666664,
+      "avgReturn": 1.6654383317085542,
+      "maxProfit": 44.45249736828294,
+      "maxLoss": -23.136791789037716,
+      "yearsOfData": 15,
+      "ticker": "TSLA"
+    },
+    {
+      "winRate": 61.53846153846154,
+      "avgReturn": 4.671854701150673,
+      "maxProfit": 86.87213628027442,
+      "maxLoss": -30.90265360083051,
+      "yearsOfData": 13,
+      "ticker": "META"
+    },
+    {
+      "winRate": 55.00000000000001,
+      "avgReturn": 3.8527894569605943,
+      "maxProfit": 36.40868997392148,
+      "maxLoss": -20.264711590441586,
+      "yearsOfData": 20,
+      "ticker": "JPM"
+    },
+    {
+      "winRate": 45.0,
+      "avgReturn": 0.33132153268151177,
+      "maxProfit": 9.009300908426932,
+      "maxLoss": -6.813705522092873,
+      "yearsOfData": 20,
+      "ticker": "JNJ"
+    },
+    {
+      "winRate": 64.70588235294117,
+      "avgReturn": 1.3273221221048483,
+      "maxProfit": 19.36861764016964,
+      "maxLoss": -13.83362632708549,
+      "yearsOfData": 17,
+      "ticker": "V"
+    },
+    {
+      "winRate": 75.0,
+      "avgReturn": 2.9031439113853645,
+      "maxProfit": 16.562290226227304,
+      "maxLoss": -12.366461092766878,
+      "yearsOfData": 20,
+      "ticker": "PG"
+    },
+    {
+      "winRate": 63.1578947368421,
+      "avgReturn": 5.837636183147338,
+      "maxProfit": 59.53786049924741,
+      "maxLoss": -30.597017406137617,
+      "yearsOfData": 19,
+      "ticker": "MA"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 3.552412495922906,
+      "maxProfit": 16.35828384425182,
+      "maxLoss": -17.065492251591195,
+      "yearsOfData": 20,
+      "ticker": "HD"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.134724501072461,
+      "maxProfit": 16.45432870551089,
+      "maxLoss": -16.10872308319372,
+      "yearsOfData": 20,
+      "ticker": "UNH"
+    },
+    {
+      "winRate": 45.0,
+      "avgReturn": -1.7130143088560719,
+      "maxProfit": 17.981744123138554,
+      "maxLoss": -14.565822057926281,
+      "yearsOfData": 20,
+      "ticker": "DIS"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.921412223916459,
+      "maxProfit": 32.79296188109129,
+      "maxLoss": -37.723299877190705,
+      "yearsOfData": 20,
+      "ticker": "BAC"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 1.2850360490135428,
+      "maxProfit": 24.254650646873177,
+      "maxLoss": -16.302421629769505,
+      "yearsOfData": 20,
+      "ticker": "PFE"
+    },
+    {
+      "winRate": 55.00000000000001,
+      "avgReturn": 0.20149035892564493,
+      "maxProfit": 21.669983141889993,
+      "maxLoss": -21.812467430045256,
+      "yearsOfData": 20,
+      "ticker": "XOM"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 0.5329894942631825,
+      "maxProfit": 21.16367896628457,
+      "maxLoss": -21.249507379657384,
+      "yearsOfData": 20,
+      "ticker": "CVX"
+    },
+    {
+      "winRate": 65.0,
+      "avgReturn": 1.0802698720089918,
+      "maxProfit": 14.274513923745257,
+      "maxLoss": -12.334126702095173,
+      "yearsOfData": 20,
+      "ticker": "KO"
+    }
+  ],
+  "1m_10y": [
+    {
+      "winRate": 70.0,
+      "avgReturn": 4.323869559606291,
+      "maxProfit": 17.89958784834478,
+      "maxLoss": -9.20359586102536,
+      "yearsOfData": 10,
+      "ticker": "AAPL"
+    },
+    {
+      "winRate": 70.0,
+      "avgReturn": 1.7437223679227252,
+      "maxProfit": 14.315222196036114,
+      "maxLoss": -8.800326239078515,
+      "yearsOfData": 10,
+      "ticker": "MSFT"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.3826965844604375,
+      "maxProfit": 9.560492495802375,
+      "maxLoss": -11.992709875690267,
+      "yearsOfData": 10,
+      "ticker": "GOOGL"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.14725572474764,
+      "maxProfit": 26.094221776918538,
+      "maxLoss": -11.6697827681147,
+      "yearsOfData": 10,
+      "ticker": "AMZN"
+    },
+    {
+      "winRate": 70.0,
+      "avgReturn": 6.040622361964838,
+      "maxProfit": 20.746095092489945,
+      "maxLoss": -9.576464570816178,
+      "yearsOfData": 10,
+      "ticker": "NVDA"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.9801064297766557,
+      "maxProfit": 28.847545946233176,
+      "maxLoss": -19.774088161517213,
+      "yearsOfData": 10,
+      "ticker": "TSLA"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.9546435851390498,
+      "maxProfit": 9.830016809681696,
+      "maxLoss": -12.604334443257814,
+      "yearsOfData": 10,
+      "ticker": "META"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.3202870928110002,
+      "maxProfit": 8.419653789304249,
+      "maxLoss": -4.0035294175477905,
+      "yearsOfData": 10,
+      "ticker": "JPM"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 1.5603738719491622,
+      "maxProfit": 8.719446307569623,
+      "maxLoss": -6.811413065028549,
+      "yearsOfData": 10,
+      "ticker": "JNJ"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 0.8252553854122822,
+      "maxProfit": 5.989881591694934,
+      "maxLoss": -6.269495985327955,
+      "yearsOfData": 10,
+      "ticker": "V"
+    },
+    {
+      "winRate": 90.0,
+      "avgReturn": 2.9546740598225774,
+      "maxProfit": 9.748425689530826,
+      "maxLoss": -7.406981916571387,
+      "yearsOfData": 10,
+      "ticker": "PG"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.8757574181153511,
+      "maxProfit": 8.232871193008107,
+      "maxLoss": -7.041976831425034,
+      "yearsOfData": 10,
+      "ticker": "MA"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.8461182835723864,
+      "maxProfit": 9.255262274545961,
+      "maxLoss": -4.741655587856142,
+      "yearsOfData": 10,
+      "ticker": "HD"
+    },
+    {
+      "winRate": 70.0,
+      "avgReturn": 2.2961757166022356,
+      "maxProfit": 11.422858410884373,
+      "maxLoss": -6.294162445932394,
+      "yearsOfData": 10,
+      "ticker": "UNH"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 0.9973691021009667,
+      "maxProfit": 30.52521182311605,
+      "maxLoss": -11.634148986415227,
+      "yearsOfData": 10,
+      "ticker": "DIS"
+    },
+    {
+      "winRate": 70.0,
+      "avgReturn": 2.8640844675119888,
+      "maxProfit": 12.403114338651665,
+      "maxLoss": -8.188113569730914,
+      "yearsOfData": 10,
+      "ticker": "BAC"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.974991356012176,
+      "maxProfit": 22.023184392048933,
+      "maxLoss": -16.89049094731011,
+      "yearsOfData": 10,
+      "ticker": "PFE"
+    },
+    {
+      "winRate": 30.0,
+      "avgReturn": -0.8549426792152316,
+      "maxProfit": 10.263772307688622,
+      "maxLoss": -7.412443549593906,
+      "yearsOfData": 10,
+      "ticker": "XOM"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": -0.16857656808740612,
+      "maxProfit": 13.919374454147171,
+      "maxLoss": -9.523635896486448,
+      "yearsOfData": 10,
+      "ticker": "CVX"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 2.195354396474973,
+      "maxProfit": 7.96404362585863,
+      "maxLoss": -3.046200785978015,
+      "yearsOfData": 10,
+      "ticker": "KO"
+    }
+  ],
+  "2m_10y": [
+    {
+      "winRate": 60.0,
+      "avgReturn": 4.595658851688151,
+      "maxProfit": 19.01108935513136,
+      "maxLoss": -9.784829401195294,
+      "yearsOfData": 10,
+      "ticker": "AAPL"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 0.7639768049667592,
+      "maxProfit": 8.039731975877507,
+      "maxLoss": -5.769310494791425,
+      "yearsOfData": 10,
+      "ticker": "MSFT"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 0.45200915185491153,
+      "maxProfit": 12.23532801637559,
+      "maxLoss": -16.959592039751104,
+      "yearsOfData": 10,
+      "ticker": "GOOGL"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.8050074655012214,
+      "maxProfit": 13.21003927508726,
+      "maxLoss": -8.77985709065321,
+      "yearsOfData": 10,
+      "ticker": "AMZN"
+    },
+    {
+      "winRate": 70.0,
+      "avgReturn": 7.067205229287806,
+      "maxProfit": 25.89990531227071,
+      "maxLoss": -16.686326728166666,
+      "yearsOfData": 10,
+      "ticker": "NVDA"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 5.532193713652999,
+      "maxProfit": 35.71064429156308,
+      "maxLoss": -10.884751915288792,
+      "yearsOfData": 10,
+      "ticker": "TSLA"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 0.2900615520139917,
+      "maxProfit": 10.766606526041134,
+      "maxLoss": -22.13482343316484,
+      "yearsOfData": 10,
+      "ticker": "META"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 0.4107739271680323,
+      "maxProfit": 3.520616996354353,
+      "maxLoss": -7.3255325462167065,
+      "yearsOfData": 10,
+      "ticker": "JPM"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 1.142060818913877,
+      "maxProfit": 12.937898832939698,
+      "maxLoss": -6.993008500732445,
+      "yearsOfData": 10,
+      "ticker": "JNJ"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.4884431268166398,
+      "maxProfit": 9.729225306294186,
+      "maxLoss": -10.145224995202373,
+      "yearsOfData": 10,
+      "ticker": "V"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 3.23480044766371,
+      "maxProfit": 12.052042782846527,
+      "maxLoss": -14.063673716471147,
+      "yearsOfData": 10,
+      "ticker": "PG"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 3.241683151066021,
+      "maxProfit": 11.01783007327002,
+      "maxLoss": -11.385588309978711,
+      "yearsOfData": 10,
+      "ticker": "MA"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 3.356293316237835,
+      "maxProfit": 9.437538871387208,
+      "maxLoss": -5.8410113852173655,
+      "yearsOfData": 10,
+      "ticker": "HD"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 0.14098399471439754,
+      "maxProfit": 14.174296478037164,
+      "maxLoss": -13.483224907844683,
+      "yearsOfData": 10,
+      "ticker": "UNH"
+    },
+    {
+      "winRate": 30.0,
+      "avgReturn": -1.4745208238853875,
+      "maxProfit": 18.172260965296783,
+      "maxLoss": -12.535749184494293,
+      "yearsOfData": 10,
+      "ticker": "DIS"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 1.8378013257409855,
+      "maxProfit": 14.954166226255584,
+      "maxLoss": -9.488524948519117,
+      "yearsOfData": 10,
+      "ticker": "BAC"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 0.5501135228792353,
+      "maxProfit": 15.60959631236054,
+      "maxLoss": -11.979461952147707,
+      "yearsOfData": 10,
+      "ticker": "PFE"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": -1.4551121174190018,
+      "maxProfit": 17.865021055616293,
+      "maxLoss": -16.237419067215807,
+      "yearsOfData": 10,
+      "ticker": "XOM"
+    },
+    {
+      "winRate": 30.0,
+      "avgReturn": -1.3953128129777856,
+      "maxProfit": 19.690196025219088,
+      "maxLoss": -14.100194840443692,
+      "yearsOfData": 10,
+      "ticker": "CVX"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 1.7807702714596771,
+      "maxProfit": 12.332437453862898,
+      "maxLoss": -6.960216653282658,
+      "yearsOfData": 10,
+      "ticker": "KO"
+    }
+  ],
+  "3m_10y": [
+    {
+      "winRate": 50.0,
+      "avgReturn": 4.747755100664835,
+      "maxProfit": 24.142587542672445,
+      "maxLoss": -13.31097472679409,
+      "yearsOfData": 10,
+      "ticker": "AAPL"
+    },
+    {
+      "winRate": 70.0,
+      "avgReturn": 1.1432332166316825,
+      "maxProfit": 7.382570681512046,
+      "maxLoss": -8.562942740001011,
+      "yearsOfData": 10,
+      "ticker": "MSFT"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 0.9034931712007385,
+      "maxProfit": 10.19654049905656,
+      "maxLoss": -12.369792640647127,
+      "yearsOfData": 10,
+      "ticker": "GOOGL"
+    },
+    {
+      "winRate": 30.0,
+      "avgReturn": 1.1489957667638582,
+      "maxProfit": 16.444796193153,
+      "maxLoss": -14.303384885796344,
+      "yearsOfData": 10,
+      "ticker": "AMZN"
+    },
+    {
+      "winRate": 70.0,
+      "avgReturn": 11.923895594146932,
+      "maxProfit": 39.35820224853652,
+      "maxLoss": -24.09874957646241,
+      "yearsOfData": 10,
+      "ticker": "NVDA"
+    },
+    {
+      "winRate": 30.0,
+      "avgReturn": -0.19023600233678017,
+      "maxProfit": 44.45249736828294,
+      "maxLoss": -19.424018363212824,
+      "yearsOfData": 10,
+      "ticker": "TSLA"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": -0.7714894510478224,
+      "maxProfit": 19.0166127342674,
+      "maxLoss": -25.81189278832895,
+      "yearsOfData": 10,
+      "ticker": "META"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 0.9620285851152632,
+      "maxProfit": 6.475676762899174,
+      "maxLoss": -9.93126885012824,
+      "yearsOfData": 10,
+      "ticker": "JPM"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 0.22597042409687731,
+      "maxProfit": 9.009300908426932,
+      "maxLoss": -6.716247007664,
+      "yearsOfData": 10,
+      "ticker": "JNJ"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 0.6216665669048149,
+      "maxProfit": 12.398001494059097,
+      "maxLoss": -11.92767493336544,
+      "yearsOfData": 10,
+      "ticker": "V"
+    },
+    {
+      "winRate": 70.0,
+      "avgReturn": 1.6900795747972244,
+      "maxProfit": 16.562290226227304,
+      "maxLoss": -12.366461092766878,
+      "yearsOfData": 10,
+      "ticker": "PG"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.907149849130578,
+      "maxProfit": 15.803563109101493,
+      "maxLoss": -12.158834776365968,
+      "yearsOfData": 10,
+      "ticker": "MA"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 3.836599502151153,
+      "maxProfit": 15.606146077006432,
+      "maxLoss": -7.045037708688707,
+      "yearsOfData": 10,
+      "ticker": "HD"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 1.2519112432758417,
+      "maxProfit": 16.45432870551089,
+      "maxLoss": -16.10872308319372,
+      "yearsOfData": 10,
+      "ticker": "UNH"
+    },
+    {
+      "winRate": 30.0,
+      "avgReturn": -3.531929288069274,
+      "maxProfit": 6.666663244959836,
+      "maxLoss": -10.368131352084253,
+      "yearsOfData": 10,
+      "ticker": "DIS"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 1.515102214749104,
+      "maxProfit": 16.425102253635472,
+      "maxLoss": -10.264530034482512,
+      "yearsOfData": 10,
+      "ticker": "BAC"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": -1.4066203539346265,
+      "maxProfit": 18.11874841512189,
+      "maxLoss": -16.302421629769505,
+      "yearsOfData": 10,
+      "ticker": "PFE"
+    },
+    {
+      "winRate": 50.0,
+      "avgReturn": 0.695216550781842,
+      "maxProfit": 21.669983141889993,
+      "maxLoss": -21.812467430045256,
+      "yearsOfData": 10,
+      "ticker": "XOM"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 1.6896501246637747,
+      "maxProfit": 21.16367896628457,
+      "maxLoss": -16.235571992662724,
+      "yearsOfData": 10,
+      "ticker": "CVX"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": -0.33233120776793507,
+      "maxProfit": 10.466706434914453,
+      "maxLoss": -12.334126702095173,
+      "yearsOfData": 10,
+      "ticker": "KO"
+    }
+  ],
+  "1m_5y": [
+    {
+      "winRate": 60.0,
+      "avgReturn": 4.284918509401991,
+      "maxProfit": 19.262020014587698,
+      "maxLoss": -8.402682989784704,
+      "yearsOfData": 5,
+      "ticker": "AAPL"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.051750663802857,
+      "maxProfit": 14.315222196036114,
+      "maxLoss": -8.800326239078515,
+      "yearsOfData": 5,
+      "ticker": "MSFT"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.8206252204555526,
+      "maxProfit": 9.21697906630914,
+      "maxLoss": -11.992709875690267,
+      "yearsOfData": 5,
+      "ticker": "GOOGL"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.6304399370140863,
+      "maxProfit": 26.094221776918538,
+      "maxLoss": -11.6697827681147,
+      "yearsOfData": 5,
+      "ticker": "AMZN"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 5.257543916420853,
+      "maxProfit": 20.746095092489945,
+      "maxLoss": -9.576464570816178,
+      "yearsOfData": 5,
+      "ticker": "NVDA"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.313851081423573,
+      "maxProfit": 28.847545946233176,
+      "maxLoss": -19.774088161517213,
+      "yearsOfData": 5,
+      "ticker": "TSLA"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 5.4858754727738095,
+      "maxProfit": 9.830016809681696,
+      "maxLoss": -2.7911874707345574,
+      "yearsOfData": 5,
+      "ticker": "META"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.211976618361806,
+      "maxProfit": 8.419653789304249,
+      "maxLoss": -1.6625345570606465,
+      "yearsOfData": 5,
+      "ticker": "JPM"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.408510645409561,
+      "maxProfit": 8.719446307569623,
+      "maxLoss": -6.811413065028549,
+      "yearsOfData": 5,
+      "ticker": "JNJ"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": -1.1396438535493747,
+      "maxProfit": 3.220028571471034,
+      "maxLoss": -6.269495985327955,
+      "yearsOfData": 5,
+      "ticker": "V"
+    },
+    {
+      "winRate": 100.0,
+      "avgReturn": 4.543153648723823,
+      "maxProfit": 8.971269982621921,
+      "maxLoss": 2.257949253343483,
+      "yearsOfData": 5,
+      "ticker": "PG"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.378664987660108,
+      "maxProfit": 9.169857398784798,
+      "maxLoss": -7.041976831425034,
+      "yearsOfData": 5,
+      "ticker": "MA"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 4.343432371307136,
+      "maxProfit": 8.70659339054427,
+      "maxLoss": -2.3405609520263826,
+      "yearsOfData": 5,
+      "ticker": "HD"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 4.364292658882592,
+      "maxProfit": 11.422858410884373,
+      "maxLoss": -2.4711252995381794,
+      "yearsOfData": 5,
+      "ticker": "UNH"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 5.654246272111614,
+      "maxProfit": 30.52521182311605,
+      "maxLoss": -11.634148986415227,
+      "yearsOfData": 5,
+      "ticker": "DIS"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 4.775389767015892,
+      "maxProfit": 12.403114338651665,
+      "maxLoss": -8.188113569730914,
+      "yearsOfData": 5,
+      "ticker": "BAC"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 5.437674846804652,
+      "maxProfit": 22.023184392048933,
+      "maxLoss": -3.118786875176982,
+      "yearsOfData": 5,
+      "ticker": "PFE"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 3.4742771366553056,
+      "maxProfit": 10.263772307688622,
+      "maxLoss": -2.2404433238647825,
+      "yearsOfData": 5,
+      "ticker": "XOM"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 2.3628237934080087,
+      "maxProfit": 13.919374454147171,
+      "maxLoss": -8.78892643455732,
+      "yearsOfData": 5,
+      "ticker": "CVX"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 3.397677626539197,
+      "maxProfit": 7.96404362585863,
+      "maxLoss": -0.5591207433335965,
+      "yearsOfData": 5,
+      "ticker": "KO"
+    }
+  ],
+  "2m_5y": [
+    {
+      "winRate": 40.0,
+      "avgReturn": 1.8510004618405933,
+      "maxProfit": 19.918507273116106,
+      "maxLoss": -9.285358314701464,
+      "yearsOfData": 5,
+      "ticker": "AAPL"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 0.07416618563375935,
+      "maxProfit": 6.879666537834583,
+      "maxLoss": -5.769310494791425,
+      "yearsOfData": 5,
+      "ticker": "MSFT"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 0.2671948273589429,
+      "maxProfit": 12.23532801637559,
+      "maxLoss": -16.959592039751104,
+      "yearsOfData": 5,
+      "ticker": "GOOGL"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 3.763112282561969,
+      "maxProfit": 13.21003927508726,
+      "maxLoss": -4.990084644427184,
+      "yearsOfData": 5,
+      "ticker": "AMZN"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 3.9416271373020124,
+      "maxProfit": 28.22109069157117,
+      "maxLoss": -16.686326728166666,
+      "yearsOfData": 5,
+      "ticker": "NVDA"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 15.272981172962233,
+      "maxProfit": 49.85606421576732,
+      "maxLoss": -9.036574527473707,
+      "yearsOfData": 5,
+      "ticker": "TSLA"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 4.127072325695586,
+      "maxProfit": 13.070207937905053,
+      "maxLoss": -8.032773522958092,
+      "yearsOfData": 5,
+      "ticker": "META"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": -0.24456702795925267,
+      "maxProfit": 2.806558565553119,
+      "maxLoss": -2.692645706916086,
+      "yearsOfData": 5,
+      "ticker": "JPM"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.3461032122070815,
+      "maxProfit": 11.156275911958403,
+      "maxLoss": -6.993008500732445,
+      "yearsOfData": 5,
+      "ticker": "JNJ"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": -0.610244369387476,
+      "maxProfit": 6.5160142739953075,
+      "maxLoss": -10.145224995202373,
+      "yearsOfData": 5,
+      "ticker": "V"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 4.729759570256947,
+      "maxProfit": 11.818527964863446,
+      "maxLoss": -3.902145765015086,
+      "yearsOfData": 5,
+      "ticker": "PG"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 2.6982642495970377,
+      "maxProfit": 13.292138242281037,
+      "maxLoss": -11.385588309978711,
+      "yearsOfData": 5,
+      "ticker": "MA"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 4.032628248378696,
+      "maxProfit": 11.239165082210235,
+      "maxLoss": -4.879100605595655,
+      "yearsOfData": 5,
+      "ticker": "HD"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.9978912269761895,
+      "maxProfit": 14.174296478037164,
+      "maxLoss": -3.469642239665316,
+      "yearsOfData": 5,
+      "ticker": "UNH"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 3.6067441275278953,
+      "maxProfit": 18.172260965296783,
+      "maxLoss": -7.814595001054636,
+      "yearsOfData": 5,
+      "ticker": "DIS"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 1.7092506992255707,
+      "maxProfit": 6.377364155043774,
+      "maxLoss": -6.820649296428383,
+      "yearsOfData": 5,
+      "ticker": "BAC"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.0305344329018238,
+      "maxProfit": 12.53416609447855,
+      "maxLoss": -10.1292816401922,
+      "yearsOfData": 5,
+      "ticker": "PFE"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 1.8712306702197672,
+      "maxProfit": 17.865021055616293,
+      "maxLoss": -16.473504501014524,
+      "yearsOfData": 5,
+      "ticker": "XOM"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 0.5390784949743679,
+      "maxProfit": 19.690196025219088,
+      "maxLoss": -12.34638666164518,
+      "yearsOfData": 5,
+      "ticker": "CVX"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 3.4846917512915896,
+      "maxProfit": 12.332437453862898,
+      "maxLoss": -3.1017744482306764,
+      "yearsOfData": 5,
+      "ticker": "KO"
+    }
+  ],
+  "3m_5y": [
+    {
+      "winRate": 20.0,
+      "avgReturn": 1.1374940172794763,
+      "maxProfit": 25.782600953160784,
+      "maxLoss": -7.680026083431235,
+      "yearsOfData": 5,
+      "ticker": "AAPL"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": -1.4973605116129591,
+      "maxProfit": 8.568994278563814,
+      "maxLoss": -8.562942740001011,
+      "yearsOfData": 5,
+      "ticker": "MSFT"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": -0.4039882975344856,
+      "maxProfit": 10.19654049905656,
+      "maxLoss": -12.369792640647127,
+      "yearsOfData": 5,
+      "ticker": "GOOGL"
+    },
+    {
+      "winRate": 20.0,
+      "avgReturn": -0.6342206678012464,
+      "maxProfit": 12.127408629356928,
+      "maxLoss": -9.553862786539325,
+      "yearsOfData": 5,
+      "ticker": "AMZN"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 5.651706777115121,
+      "maxProfit": 39.12003823211585,
+      "maxLoss": -24.09874957646241,
+      "yearsOfData": 5,
+      "ticker": "NVDA"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 8.682926216258497,
+      "maxProfit": 53.70108821980857,
+      "maxLoss": -13.790372237990967,
+      "yearsOfData": 5,
+      "ticker": "TSLA"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.294514987960485,
+      "maxProfit": 19.0166127342674,
+      "maxLoss": -20.89252004096923,
+      "yearsOfData": 5,
+      "ticker": "META"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.3408805690890802,
+      "maxProfit": 6.475676762899174,
+      "maxLoss": -2.7956182397880447,
+      "yearsOfData": 5,
+      "ticker": "JPM"
+    },
+    {
+      "winRate": 20.0,
+      "avgReturn": -0.6762275619673371,
+      "maxProfit": 9.009300908426932,
+      "maxLoss": -6.716247007664,
+      "yearsOfData": 5,
+      "ticker": "JNJ"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": -3.2700226373420294,
+      "maxProfit": 4.654111946594441,
+      "maxLoss": -11.92767493336544,
+      "yearsOfData": 5,
+      "ticker": "V"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 1.824618357215395,
+      "maxProfit": 16.182246699463086,
+      "maxLoss": -12.366461092766878,
+      "yearsOfData": 5,
+      "ticker": "PG"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 0.6735202637587797,
+      "maxProfit": 14.614708283285637,
+      "maxLoss": -12.158834776365968,
+      "yearsOfData": 5,
+      "ticker": "MA"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 4.620214189453808,
+      "maxProfit": 15.606146077006432,
+      "maxLoss": -7.045037708688707,
+      "yearsOfData": 5,
+      "ticker": "HD"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 5.299930700501858,
+      "maxProfit": 16.45432870551089,
+      "maxLoss": -3.5908894354770293,
+      "yearsOfData": 5,
+      "ticker": "UNH"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": -0.5623173895376209,
+      "maxProfit": 5.995143547099269,
+      "maxLoss": -6.076568897653056,
+      "yearsOfData": 5,
+      "ticker": "DIS"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": 0.5094402378279888,
+      "maxProfit": 11.669001973219938,
+      "maxLoss": -8.221085987679222,
+      "yearsOfData": 5,
+      "ticker": "BAC"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": -3.0674335079029325,
+      "maxProfit": 4.55129689798619,
+      "maxLoss": -16.302421629769505,
+      "yearsOfData": 5,
+      "ticker": "PFE"
+    },
+    {
+      "winRate": 80.0,
+      "avgReturn": 4.579244394437398,
+      "maxProfit": 21.669983141889993,
+      "maxLoss": -21.355678913611076,
+      "yearsOfData": 5,
+      "ticker": "XOM"
+    },
+    {
+      "winRate": 60.0,
+      "avgReturn": 3.5175117454419236,
+      "maxProfit": 21.16367896628457,
+      "maxLoss": -16.24976871654319,
+      "yearsOfData": 5,
+      "ticker": "CVX"
+    },
+    {
+      "winRate": 40.0,
+      "avgReturn": -1.102959126367955,
+      "maxProfit": 10.466706434914453,
+      "maxLoss": -12.334126702095173,
+      "yearsOfData": 5,
+      "ticker": "KO"
+    }
+  ]
 }
