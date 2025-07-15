@@ -1,5 +1,5 @@
 # FILE: worker/calculate_seasonality.py
-# --- Updated to use the yfinance library ---
+# --- Updated to use yfinance and robust file paths ---
 
 # Step 1: Import necessary libraries
 import yfinance as yf
@@ -7,10 +7,19 @@ import pandas as pd
 import numpy as np
 import json
 from datetime import datetime, timedelta
+import os # <-- Import the 'os' module for path manipulation
 
-# Step 2: Configuration Variables
-TICKER_FILE = 'worker/tickers.txt'
-OUTPUT_FILE = 'public/scan_results.json' 
+# Step 2: Build robust file paths
+# Get the absolute path of the directory where this script is located (e.g., /github/workspace/worker)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Get the project root directory (e.g., /github/workspace) by going one level up from the script's dir
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+
+# Define paths using the project root to ensure they are always correct, regardless of where the script is called from.
+TICKER_FILE = os.path.join(PROJECT_ROOT, 'worker', 'tickers.txt')
+OUTPUT_FILE = os.path.join(PROJECT_ROOT, 'public', 'scan_results.json')
+
+# --- Configuration Variables ---
 FORWARD_PERIODS_MONTHS = [1, 2, 3]
 LOOKBACK_PERIODS_YEARS = [5, 10, 20]
 
@@ -27,14 +36,12 @@ def fetch_price_history(ticker, years_of_data):
     start_date = end_date - timedelta(days=years_of_data * 365.25)
     
     # yf.download is the core function from the yfinance library.
-    # It's more robust than using requests directly.
-    # We set progress=False to keep the logs clean in the GitHub Action.
-    data = yf.download(ticker, start=start_date, end=end_date, progress=False)
+    data = yf.download(ticker, start=start_date, end=end_date, progress=False, auto_adjust=True)
     
     if data.empty:
         raise ValueError(f"No data returned for ticker {ticker}. It may be delisted or an invalid symbol.")
     
-    # We only care about the 'Adj Close' as it accounts for dividends and splits.
+    # yfinance with auto_adjust=True returns the adjusted close in the 'Close' column.
     return data['Close']
 
 # --- Core Logic to Calculate Metrics for a Single Ticker ---
@@ -116,10 +123,15 @@ def run_scan():
                 except Exception as e:
                     print(f"    - ERROR: Could not process {ticker}. Reason: {e}")
 
+    # --- FIX: Ensure the output directory exists before writing the file ---
+    output_dir = os.path.dirname(OUTPUT_FILE)
+    os.makedirs(output_dir, exist_ok=True) # This will create the 'public' directory if it's missing.
+    
+    print(f"\nWriting results to {OUTPUT_FILE}...")
     with open(OUTPUT_FILE, 'w') as f:
         json.dump(all_results, f, indent=2)
         
-    print(f"\n✅ Scan complete. Results saved to {OUTPUT_FILE}")
+    print(f"✅ Scan complete. Results saved successfully.")
 
 if __name__ == "__main__":
     run_scan()
