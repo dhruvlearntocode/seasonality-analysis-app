@@ -439,6 +439,11 @@ function InSeasonPage({
     }
     setSortConfig({ key, direction });
   };
+  
+  const handleSubmit = (e) => {
+      e.preventDefault();
+      handleScan();
+  }
 
   const SortableHeader = ({ children, name }) => {
     const isSorted = sortConfig.key === name;
@@ -457,7 +462,7 @@ function InSeasonPage({
       <h1 className="text-5xl font-bold text-slate-100 mb-2 tracking-tight text-center" style={{textShadow: '0 0 15px rgba(56, 189, 248, 0.5)'}}>In-Season Scanner</h1>
       <p className="text-blue-200/70 text-lg mb-12 text-center">Find Tickers with Strong Seasonal Winds</p>
 
-      <div className="w-full max-w-4xl bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg p-6 control-panel relative mb-8 mx-auto">
+      <form onSubmit={handleSubmit} className="w-full max-w-4xl bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg p-6 control-panel relative mb-8 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
           {/* Controls */}
           <div className="flex flex-col gap-2">
@@ -490,14 +495,14 @@ function InSeasonPage({
             </div>
           </div>
           <button 
-              onClick={handleScan} disabled={scannerIsLoading} 
+              type="submit" disabled={scannerIsLoading} 
               className="bg-amber-500 hover:bg-amber-400 text-amber-900 font-bold py-2 px-6 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-full shadow-[0_0_20px_rgba(251,191,36,0.5)] flex items-center justify-center gap-2"
           >
               <Zap size={18}/>
               {scannerIsLoading ? 'LOADING...' : 'SCAN'}
           </button>
         </div>
-      </div>
+      </form>
 
       {/* Results */}
       <div className="w-full max-w-6xl mx-auto">
