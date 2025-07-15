@@ -603,7 +603,7 @@ function App() {
                         <Telescope size={24} className="text-blue-300/70"/>
                         <input 
                             id="ticker" type="text" value={ticker} onChange={(e) => setTicker(e.target.value)} 
-                            className="w-full bg-transparent text-2xl text-slate-100 uppercase placeholder-slate-600 focus:outline-none" 
+                            className="w-full bg-transparent text-2xl text-slate-100 uppercase placeholder-slate-600 focus:outline-none border-b-2 border-slate-700 focus:border-amber-500 pb-1 transition-colors" 
                         />
                     </div>
                     <div className="flex items-center gap-4">
@@ -754,3 +754,4 @@ function App() {
 }
 
 export default App;
+
