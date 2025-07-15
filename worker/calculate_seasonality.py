@@ -1,5 +1,5 @@
 # FILE: worker/calculate_seasonality.py
-# --- Optimized for a single, batch API call for all tickers ---
+# --- FIX: Corrected date/timezone handling to resolve empty JSON issue ---
 
 # Step 1: Import necessary libraries
 import yfinance as yf
@@ -21,46 +21,47 @@ LOOKBACK_PERIODS_YEARS = sorted([5, 10, 20], reverse=True)
 MAX_LOOKBACK = LOOKBACK_PERIODS_YEARS[0]
 
 # --- Helper Function to Fetch Price Data ---
-def fetch_all_price_history(tickers):
+def fetch_max_price_history(ticker):
     """
-    Fetches historical daily price data for a list of tickers in a single batch API call.
+    Fetches historical daily price data using the recommended yf.Ticker object.
+    This method correctly handles dividend and split adjustments.
     """
-    print(f"    - Fetching max ({MAX_LOOKBACK} years) data for {len(tickers)} tickers in a single batch...")
+    print(f"    - Fetching max ({MAX_LOOKBACK} years) data for {ticker}...")
     end_date = datetime.now()
     start_date = end_date - timedelta(days=MAX_LOOKBACK * 365.25)
     
-    # Pass a space-separated string of tickers to yf.download
-    data = yf.download(' '.join(tickers), start=start_date, end=end_date, progress=False, auto_adjust=True)
+    stock_ticker = yf.Ticker(ticker)
+    data = stock_ticker.history(start=start_date, end=end_date, auto_adjust=True)
     
     if data.empty:
-        raise ValueError("No data returned from yfinance for the given tickers.")
+        raise ValueError(f"No data returned for ticker {ticker}.")
     
-    # The result is a DataFrame with multi-level columns. We only need the 'Close' prices.
+    # --- FIX: Remove timezone information to prevent comparison errors ---
+    # This makes the index "timezone-naive", matching the naive datetime objects we create later.
+    data.index = data.index.tz_localize(None)
+    
     return data['Close']
 
 # --- Core Logic to Calculate Metrics for a Single Ticker ---
 def calculate_metrics_for_ticker(prices, forward_months, today):
     """
     Calculates all performance metrics for a single ticker's price history.
-    'prices' is now a pandas Series for a single ticker.
+    'today' is passed in to ensure the date is consistent throughout the entire scan.
     """
     forward_days = forward_months * 21
     all_returns = []
     
-    if prices.empty or prices.isnull().all():
-        return None
-
-    # Remove any leading/trailing NaN values that can occur for newer stocks in a long lookback
-    prices = prices.dropna()
     if prices.empty:
         return None
 
     start_year_of_data = prices.index.year.min()
 
     for year in range(start_year_of_data, today.year):
+        # Create a timezone-naive datetime object for the target date in a past year.
         start_date_past = datetime(year, today.month, today.day)
         
         try:
+            # searchsorted works reliably with two naive datetime objects.
             actual_start_idx = prices.index.searchsorted(start_date_past)
             actual_end_idx = actual_start_idx + forward_days
 
@@ -95,13 +96,14 @@ def calculate_metrics_for_ticker(prices, forward_months, today):
 # --- Main Execution Block (Optimized) ---
 def run_scan():
     """
-    Orchestrates the entire process with a single batch API call.
+    Orchestrates the entire process with optimized API calls and correct date handling.
     """
+    # --- FIX: Define 'today' once at the start for consistency ---
     today = datetime.today()
     print(f"Starting daily seasonality scan for date: {today.strftime('%Y-%m-%d')}")
 
     with open(TICKER_FILE, 'r') as f:
-        tickers = [line.strip().upper() for line in f.readlines() if line.strip()]
+        tickers = [line.strip() for line in f.readlines() if line.strip()]
     
     all_results = {}
     for lookback in LOOKBACK_PERIODS_YEARS:
@@ -109,39 +111,28 @@ def run_scan():
             key = f"{forward}m_{lookback}y"
             all_results[key] = []
 
-    try:
-        # Step 1: Fetch all data in one go
-        all_prices = fetch_all_price_history(tickers)
-        
-        # Step 2: Loop through each ticker from the downloaded data
-        for ticker in tickers:
-            print(f"\n[Processing Ticker: {ticker}]")
+    for ticker in tickers:
+        print(f"\n[Processing Ticker: {ticker}]")
+        try:
+            max_prices = fetch_max_price_history(ticker)
             
-            # Check if the ticker's data was successfully downloaded (it might be a column of NaNs if invalid)
-            if ticker not in all_prices.columns or all_prices[ticker].isnull().all():
-                print(f"  - WARNING: No valid data for {ticker} in the downloaded batch. Skipping.")
-                continue
-
-            # Get the price series for the current ticker
-            ticker_prices = all_prices[ticker].dropna()
-            
-            # Step 3: Loop through the lookback periods and slice the in-memory data
             for lookback in LOOKBACK_PERIODS_YEARS:
-                lookback_start_date = today - timedelta(days=lookback * 365.25)
-                prices_for_lookback = ticker_prices[ticker_prices.index >= lookback_start_date]
+                print(f"  - Analyzing for {lookback}-year lookback period...")
                 
-                # Step 4: Loop through forward periods and calculate metrics
+                lookback_start_date = today - timedelta(days=lookback * 365.25)
+                prices_for_lookback = max_prices[max_prices.index >= lookback_start_date]
+                
                 for forward in FORWARD_PERIODS_MONTHS:
                     key = f"{forward}m_{lookback}y"
+                    # Pass 'today' into the function
                     metrics = calculate_metrics_for_ticker(prices_for_lookback, forward, today)
                     
                     if metrics:
                         metrics['ticker'] = ticker
                         all_results[key].append(metrics)
-            print(f"  - SUCCESS: Finished all permutations for {ticker}.")
-
-    except Exception as e:
-        print(f"--> FATAL ERROR during data fetch or processing: {e}")
+                        
+        except Exception as e:
+            print(f"  --> ERROR: Could not process {ticker}. Reason: {e}")
 
     output_dir = os.path.dirname(OUTPUT_FILE)
     os.makedirs(output_dir, exist_ok=True)
