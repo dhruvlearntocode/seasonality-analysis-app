@@ -413,10 +413,9 @@ function InSeasonPage({
     handleScan,
     scannerError,
     strictYears, setStrictYears,
-    onTickerClick
+    onTickerClick,
+    sortConfig, setSortConfig
 }) {
-
-  const [sortConfig, setSortConfig] = useState({ key: 'winRate', direction: 'descending' });
 
   const displayedResults = useMemo(() => {
     if (!scanCompleted) return [];
@@ -603,6 +602,7 @@ function App() {
   const [scanCompleted, setScanCompleted] = useState(false);
   const [scannerError, setScannerError] = useState('');
   const [strictYears, setStrictYears] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ key: 'winRate', direction: 'descending' });
 
   // --- Logic for SeasonalityPage ---
   useEffect(() => {
@@ -845,7 +845,7 @@ function App() {
   return (
     <>
       <Analytics />
-      <SpeedInsights />
+	    <SpeedInsights />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         body { font-family: 'Exo 2', sans-serif; background-color: #010409; color: #E5E7EB; }
@@ -906,6 +906,8 @@ function App() {
                         strictYears={strictYears}
                         setStrictYears={setStrictYears}
                         onTickerClick={handleTickerClickFromScanner}
+                        sortConfig={sortConfig}
+                        setSortConfig={setSortConfig}
                     />
                 )}
               </motion.div>
@@ -919,6 +921,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
