@@ -1,0 +1,69 @@
+# A descriptive name for your workflow. This is what you'll see in the "Actions" tab on GitHub.
+name: Calculate Daily Seasonality
+
+# This section defines what events will trigger this workflow to run.
+on:
+  # The 'schedule' trigger runs the workflow at specific times, defined by a POSIX cron string.
+  schedule:
+    # This cron string '0 1 * * *' translates to: "Run at minute 0 of hour 1, every day, every month, every day of the week."
+    # In simple terms: Run at 1:00 AM UTC every single day. This is a good time as it's after most market closes.
+    - cron: '0 1 * * *'
+
+  # The 'workflow_dispatch' trigger allows you to run this workflow manually at any time.
+  # You'll see a "Run workflow" button on the Actions page in your GitHub repository. This is extremely useful for testing.
+  workflow_dispatch:
+
+# A workflow run is made up of one or more "jobs" that can run sequentially or in parallel.
+# We only need one job for this task.
+jobs:
+  # A user-defined name for the job.
+  calculate-and-commit:
+    # Specifies the type of virtual machine to run the job on. 'ubuntu-latest' is a standard, reliable choice.
+    runs-on: ubuntu-latest
+
+    # A job contains a sequence of "steps". Each step is either a shell command or a pre-built Action.
+    steps:
+      # Step 1: Check out your repository's code
+      # This action checks out your repository onto the virtual machine, so the script has access to your files.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the Python environment
+      # This action installs a specific version of Python onto the virtual machine.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9' # We specify version 3.9, which is stable and widely compatible.
+
+      # Step 3: Install the Python script's dependencies
+      # This is a 'run' step, which executes shell commands.
+      # It's the equivalent of you running 'pip install' on your own machine.
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pandas numpy
+
+      # Step 4: Execute your main calculation script
+      # This command runs the Python script we created in the previous step.
+      # It will generate the 'public/scan_results.json' file inside the virtual machine's file system.
+      - name: Run Seasonality Calculation Script
+        run: python worker/calculate_seasonality.py
+
+      # Step 5: Commit the newly generated data file back to the repository
+      # This is the crucial step that saves our work.
+      - name: Commit and push if changed
+        run: |
+          # Configure git with a bot user name and email. This is required to make a commit.
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+          # Add the specific output file to the git staging area.
+          git add public/scan_results.json
+
+          # Check if the file has actually changed. If it hasn't, we don't want to create an empty commit.
+          # 'git diff --staged --quiet' will exit with an error code if there are staged changes.
+          # The '||' means "if the previous command failed, then run the next command".
+          git diff --staged --quiet || git commit -m "Update daily seasonality scan results"
+
+          # Push the commit back to your main branch.
+          git push
