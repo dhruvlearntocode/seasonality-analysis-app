@@ -412,7 +412,8 @@ function InSeasonPage({
     scanCompleted,
     handleScan,
     scannerError,
-    strictYears, setStrictYears
+    strictYears, setStrictYears,
+    onTickerClick
 }) {
 
   const [sortConfig, setSortConfig] = useState({ key: 'winRate', direction: 'descending' });
@@ -543,7 +544,9 @@ function InSeasonPage({
                     <tbody className="divide-y divide-slate-800">
                         {displayedResults.map((item) => (
                             <tr key={item.ticker} className="hover:bg-slate-800/40 transition-colors">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-amber-400">{item.ticker}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-amber-400 cursor-pointer hover:underline" onClick={() => onTickerClick(item.ticker)}>
+                                    {item.ticker}
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">{item.winRate.toFixed(1)}%</td>
                                 <td className={`px-6 py-4 whitespace-nowrap text-sm ${item.avgReturn > 0 ? 'text-green-400' : 'text-red-400'}`}>{item.avgReturn.toFixed(2)}%</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-green-400">{item.maxProfit.toFixed(2)}%</td>
@@ -588,6 +591,7 @@ function App() {
   const [rangeMetrics, setRangeMetrics] = useState(null);
   const [selectedRange, setSelectedRange] = useState({ start: null, end: null });
   const [priceDataByYear, setPriceDataByYear] = useState(null);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   // --- State for InSeasonPage ---
   const [allScanData, setAllScanData] = useState(null);
@@ -602,10 +606,10 @@ function App() {
 
   // --- Logic for SeasonalityPage ---
   useEffect(() => {
-    if (page === 'seasonality' && !seasonalityData) {
+    if (page === 'seasonality') {
         handleFetchSeasonality();
     }
-  }, [page, seasonalityData]);
+  }, [page, refetchTrigger]);
   
   // --- Logic for InSeasonPage ---
   useEffect(() => {
@@ -815,6 +819,15 @@ function App() {
     }, 50);
   };
 
+  const handleTickerClickFromScanner = (clickedTicker) => {
+    setTicker(clickedTicker);
+    const currentYear = new Date().getFullYear();
+    setStartYear(currentYear - seasonalityYears);
+    setEndYear(currentYear - 1);
+    setPage('seasonality');
+    setRefetchTrigger(prev => prev + 1);
+  };
+
   // --- Navigation ---
   const NavButton = ({ targetPage, children }) => (
     <button 
@@ -892,6 +905,7 @@ function App() {
                         scannerError={scannerError}
                         strictYears={strictYears}
                         setStrictYears={setStrictYears}
+                        onTickerClick={handleTickerClickFromScanner}
                     />
                 )}
               </motion.div>
@@ -905,6 +919,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
