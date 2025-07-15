@@ -20,7 +20,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-black/30 backdrop-blur-sm p-3 border border-blue-300/20 shadow-2xl text-xs rounded-lg">
         <div className="space-y-1">
             {sortedPayload.map((p, index) => (
-              <p key={index} style={{ color: p.name === 'Average Return' || p.name === 'Detrended Average' ? '#FBBF24' : p.name === 'Current Year' ? '#a78bfa' : '#E5E7EB', fontWeight: p.name === 'Average Return' || p.name === 'Current Year' ? '600' : '400' }} className="flex justify-between items-center">
+              <p key={index} style={{ color: p.name === 'Average Return' || p.name === 'Detrended Average' ? '#FBBF24' : p.name === 'Current Year' ? '#A9A9A9' : '#A9A9A9', fontWeight: p.name === 'Average Return' || p.name === 'Current Year' ? '600' : '400' }} className="flex justify-between items-center">
                 <span>{p.name}:</span>
                 <span className="font-semibold ml-4">{p.value}%</span>
               </p>
@@ -375,19 +375,21 @@ function SeasonalityPage({
               <div className="pb-16">
                   <div className="h-[400px] relative">
                       <h2 className="text-3xl font-bold text-center mb-6 text-slate-200 tracking-tight">Seasonal Trajectory</h2>
-                      <div className="absolute top-0 right-0 flex flex-col items-end gap-2 z-20">
-                        {selectedRange.start !== null && (
-                            <button onClick={resetSelection} className="bg-red-500/20 text-white py-1 px-3 rounded-full text-xs flex items-center gap-1 hover:bg-red-500/40 transition-colors">
-                                <XCircle size={14}/>
-                                Reset Selection
-                            </button>
-                        )}
-                        <div className="flex items-center gap-2">
-                            <label htmlFor="current-year-toggle" className="text-xs text-blue-300/70">Show Current Year</label>
-                            <button id="current-year-toggle" type="button" onClick={() => setShowCurrentYear(!showCurrentYear)} className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors ${showCurrentYear ? 'bg-amber-500' : 'bg-slate-700'}`}>
-                                <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${showCurrentYear ? 'translate-x-6' : 'translate-x-1'}`} />
-                            </button>
-                        </div>
+                      <div className="absolute top-2 right-2 flex flex-col items-end gap-2 z-20">
+                          <div className="h-7"> {/* Placeholder for Reset button */}
+                              {selectedRange.start !== null && (
+                                  <button onClick={resetSelection} className="bg-red-500/20 text-white py-1 px-3 rounded-full text-xs flex items-center gap-1 hover:bg-red-500/40 transition-colors">
+                                      <XCircle size={14}/>
+                                      Reset Selection
+                                  </button>
+                              )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                              <label htmlFor="current-year-toggle" className="text-xs text-blue-300/70">Show Current Year</label>
+                              <button id="current-year-toggle" type="button" onClick={() => setShowCurrentYear(!showCurrentYear)} className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors ${showCurrentYear ? 'bg-amber-500' : 'bg-slate-700'}`}>
+                                  <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${showCurrentYear ? 'translate-x-6' : 'translate-x-1'}`} />
+                              </button>
+                          </div>
                       </div>
                       <ResponsiveContainer width="100%" height="100%">
                           <ComposedChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }} onClick={handleChartClick}>
@@ -397,7 +399,7 @@ function SeasonalityPage({
                               <YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={lineChartDomain} />
                               <Tooltip content={<CustomTooltip />} cursor={{stroke: '#F59E0B', strokeWidth: 1, strokeDasharray: '3 3'}}/>
                               <Area type="monotone" dataKey="Average Return" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/>
-                              {showCurrentYear && <Line type="monotone" dataKey="Current Year" stroke="#a78bfa" strokeWidth={3} dot={false} connectNulls={false} filter="drop-shadow(0 0 10px #a78bfa)" />}
+                              {showCurrentYear && <Line type="monotone" dataKey="Current Year" stroke="#A9A9A9" strokeWidth={3} dot={false} connectNulls={false} filter="drop-shadow(0 0 10px #C0C0C0)" />}
                               {selectedRange.start !== null && <ReferenceLine x={seasonalityData[selectedRange.start].name} stroke="#38bdf8" strokeWidth={2} />}
                               {selectedRange.end !== null && <ReferenceLine x={seasonalityData[selectedRange.end].name} stroke="#38bdf8" strokeWidth={2} />}
                               {selectedRange.start !== null && selectedRange.end !== null && <ReferenceArea x1={seasonalityData[selectedRange.start].name} x2={seasonalityData[selectedRange.end].name} stroke="#38bdf8" strokeOpacity={0.5} fill="#38bdf8" fillOpacity={0.1} />}
@@ -694,7 +696,7 @@ function App() {
       const adjClose = result?.indicators?.adjclose?.[0]?.adjclose;
       if (!result || !timestamps || !adjClose || timestamps.length === 0) throw new Error('No valid historical data returned for the specified range.');
       
-      const firstActualYear = new Date(timestamps[0] * 1000).getFullYear();
+      // const firstActualYear = new Date(timestamps[0] * 1000).getFullYear();
       // We keep the user's end year for calculations, not the fetched end year
       // setEndYear(lastActualYear);
 
@@ -865,7 +867,7 @@ function App() {
   return (
     <>
       <Analytics />
-      <SpeedInsights />
+	    <SpeedInsights />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         body { font-family: 'Exo 2', sans-serif; background-color: #010409; color: #E5E7EB; }
