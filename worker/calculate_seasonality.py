@@ -35,7 +35,7 @@ def fetch_price_history(ticker, years_of_data):
         raise ValueError(f"No data returned for ticker {ticker}. It may be delisted or an invalid symbol.")
     
     # We only care about the 'Adj Close' as it accounts for dividends and splits.
-    return data['Adj Close']
+    return data['Close']
 
 # --- Core Logic to Calculate Metrics for a Single Ticker ---
 def calculate_metrics_for_ticker(prices, forward_months):
