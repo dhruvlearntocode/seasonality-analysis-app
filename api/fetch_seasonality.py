@@ -7,6 +7,10 @@ import yfinance as yf
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 
+# --- FIX: Set the yfinance cache location to the writable /tmp directory ---
+# This is the standard workaround for read-only serverless environments like Vercel.
+yf.set_tz_cache_location("/tmp/yfinance_cache")
+
 class handler(BaseHTTPRequestHandler):
     """
     Handles incoming GET requests to /api/fetch_seasonality.
