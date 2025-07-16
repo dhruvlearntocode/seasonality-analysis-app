@@ -54,9 +54,8 @@ const calculateTradingDaySeasonality = (dailyData, userStartYear, userEndYear) =
   const dataByYear = {};
   for (const dateStr in dailyData) {
     const year = parseInt(dateStr.substring(0, 4), 10);
-    // The full dataset is passed in, so we don't filter by year here yet.
     if (!dataByYear[year]) dataByYear[year] = [];
-    dataByYear[year].push({ date: new Date(dateStr), price: dailyData[dateStr]['4. close'] });
+    dataByYear[year].push({ date: new Date(dateStr), price: dailyData[dateStr]['Close'] });
   }
 
   for (const year in dataByYear) {
@@ -152,7 +151,7 @@ const calculateMonthlyReturns = (dailyData, startYear, endYear) => {
         for (let month = 0; month < 12; month++) {
             const daysInMonth = Object.entries(dailyData)
                 .filter(([date]) => date.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`))
-                .map(([date, data]) => ({ date: new Date(date), price: data['4. close'] }))
+                .map(([date, data]) => ({ date: new Date(date), price: data['Close'] }))
                 .sort((a, b) => a.date - b.date);
 
             if (daysInMonth.length > 1) {
@@ -183,8 +182,8 @@ const calculateDayOfWeekReturns = (dailyData) => {
         const dayOfWeek = new Date(todayDateStr).getUTCDay();
 
         if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-            if (yesterdayData['4. close'] > 0 && todayData['4. close'] > 0) {
-                const logReturn = Math.log(todayData['4. close'] / yesterdayData['4. close']) * 100;
+            if (yesterdayData['Close'] > 0 && todayData['Close'] > 0) {
+                const logReturn = Math.log(todayData['Close'] / yesterdayData['Close']) * 100;
                 dayReturns[dayOfWeek - 1].push(logReturn);
             }
         }
@@ -205,8 +204,8 @@ const calculateVolatility = (dailyData) => {
     for (let i = 1; i < sortedDates.length; i++) {
         const [, todayData] = sortedDates[i];
         const [, yesterdayData] = sortedDates[i-1];
-        if (yesterdayData['4. close'] > 0 && todayData['4. close'] > 0) {
-            logReturns.push(Math.log(todayData['4. close'] / yesterdayData['4. close']));
+        if (yesterdayData['Close'] > 0 && todayData['Close'] > 0) {
+            logReturns.push(Math.log(todayData['Close'] / yesterdayData['Close']));
         }
     }
     
@@ -877,7 +876,7 @@ function App() {
   return (
     <>
 	<Analytics />
-	<SpeedInsights />
+	<SpeedInsights />	    
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         body { font-family: 'Exo 2', sans-serif; background-color: #010409; color: #E5E7EB; }
