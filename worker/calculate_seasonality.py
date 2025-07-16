@@ -1,5 +1,5 @@
 # FILE: worker/calculate_seasonality.py
-# --- Optimized with concurrent processing for large ticker lists ---
+# --- Updated to include "India Stocks" asset class ---
 
 import yfinance as yf
 import pandas as pd
@@ -8,13 +8,13 @@ import json
 from datetime import datetime, timedelta
 import os
 import time
-import concurrent.futures
 
 # --- Configuration ---
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 OUTPUT_FILE = os.path.join(PROJECT_ROOT, 'public', 'scan_results.json')
 
+# --- FIX: Added 'India Stocks' to the asset configurations ---
 ASSET_CONFIGS = [
     {'name': 'Stocks', 'file': os.path.join(PROJECT_ROOT, 'worker', 'stocks.txt')},
     {'name': 'ETFs', 'file': os.path.join(PROJECT_ROOT, 'worker', 'etfs.txt')},
@@ -24,14 +24,9 @@ ASSET_CONFIGS = [
 FORWARD_PERIODS_MONTHS = [1, 2, 3]
 LOOKBACK_PERIODS_YEARS = sorted([5, 10, 20], reverse=True) 
 MAX_LOOKBACK = LOOKBACK_PERIODS_YEARS[0]
-# Set the number of parallel worker threads. 8 is a good starting point for I/O-bound tasks.
-MAX_WORKERS = 8
 
-# --- Helper Function to Fetch Price Data ---
 def fetch_price_history(ticker):
-    """
-    Fetches historical daily price data for a single ticker.
-    """
+    print(f"    - Fetching max ({MAX_LOOKBACK} years) data for {ticker}...")
     end_date = datetime.now()
     start_date = end_date - timedelta(days=MAX_LOOKBACK * 365.25)
     
@@ -42,13 +37,10 @@ def fetch_price_history(ticker):
         raise ValueError(f"No data returned for ticker {ticker}.")
     
     data.index = data.index.tz_localize(None)
+    
     return data['Close']
 
-# --- Core Logic to Calculate Metrics for a Single Ticker ---
 def calculate_metrics_for_ticker(prices, forward_months, today):
-    """
-    Calculates all performance metrics for a single ticker's price history.
-    """
     forward_days = forward_months * 21
     all_returns = []
     
@@ -96,40 +88,7 @@ def calculate_metrics_for_ticker(prices, forward_months, today):
         'yearsOfData': len(all_returns)
     }
 
-# --- New function to encapsulate the work for a single ticker ---
-def process_ticker(ticker, today):
-    """
-    Fetches data and calculates all permutations of metrics for a single ticker.
-    This function is designed to be run in a parallel worker thread.
-    """
-    print(f"[Thread] Processing Ticker: {ticker}")
-    try:
-        prices = fetch_price_history(ticker)
-        ticker_results = []
-        
-        for lookback in LOOKBACK_PERIODS_YEARS:
-            lookback_start_date = today - timedelta(days=lookback * 365.25)
-            prices_for_lookback = prices[prices.index >= lookback_start_date]
-            
-            for forward in FORWARD_PERIODS_MONTHS:
-                key = f"{forward}m_{lookback}y"
-                metrics = calculate_metrics_for_ticker(prices_for_lookback, forward, today)
-                
-                if metrics:
-                    metrics['ticker'] = ticker
-                    ticker_results.append({'key': key, 'metrics': metrics})
-        
-        print(f"[Thread] SUCCESS: Finished all permutations for {ticker}.")
-        return ticker_results
-    except Exception as e:
-        print(f"[Thread] --> ERROR processing {ticker}. Reason: {e}")
-        return [] # Return an empty list on failure
-
-# --- Main Execution Block (Optimized for Parallelism) ---
 def run_scan():
-    """
-    Orchestrates the entire process using a thread pool for concurrent execution.
-    """
     today = datetime.today()
     print(f"Starting daily seasonality scan for date: {today.strftime('%Y-%m-%d')}")
     
@@ -146,12 +105,11 @@ def run_scan():
             with open(ticker_file, 'r') as f:
                 tickers = [line.strip().upper() for line in f.readlines() if line.strip()]
         except FileNotFoundError:
-            print(f"  - WARNING: Ticker file not found at {ticker_file}. Skipping.")
+            print(f"  - WARNING: Ticker file not found at {ticker_file}. Skipping this asset class.")
             continue
 
         if not tickers:
             print(f"  - INFO: No tickers found in {ticker_file}. Skipping.")
-            final_output[asset_name] = {}
             continue
         
         asset_results = {}
@@ -159,24 +117,30 @@ def run_scan():
             for forward in FORWARD_PERIODS_MONTHS:
                 key = f"{forward}m_{lookback}y"
                 asset_results[key] = []
+        
+        for ticker in tickers:
+            print(f"\n[Processing Ticker: {ticker}]")
+            try:
+                prices = fetch_price_history(ticker)
+                
+                for lookback in LOOKBACK_PERIODS_YEARS:
+                    lookback_start_date = today - timedelta(days=lookback * 365.25)
+                    prices_for_lookback = prices[prices.index >= lookback_start_date]
+                    
+                    for forward in FORWARD_PERIODS_MONTHS:
+                        key = f"{forward}m_{lookback}y"
+                        metrics = calculate_metrics_for_ticker(prices_for_lookback, forward, today)
+                        
+                        if metrics:
+                            metrics['ticker'] = ticker
+                            asset_results[key].append(metrics)
+                
+                print(f"  - SUCCESS: Finished all permutations for {ticker}.")
+                time.sleep(0.5) 
 
-        # Use a ThreadPoolExecutor to process tickers in parallel.
-        # This is ideal for I/O-bound tasks like making many network requests.
-        with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            # Create a future for each ticker processing task
-            future_to_ticker = {executor.submit(process_ticker, ticker, today): ticker for ticker in tickers}
-            
-            for future in concurrent.futures.as_completed(future_to_ticker):
-                ticker_name = future_to_ticker[future]
-                try:
-                    # Get the results from the completed thread
-                    results_from_thread = future.result()
-                    # Organize the results into the main dictionary
-                    for result in results_from_thread:
-                        asset_results[result['key']].append(result['metrics'])
-                except Exception as exc:
-                    print(f"  --> EXCEPTION for {ticker_name}: {exc}")
-
+            except Exception as e:
+                print(f"  --> ERROR processing {ticker}. Reason: {e}")
+        
         final_output[asset_name] = asset_results
 
     output_dir = os.path.dirname(OUTPUT_FILE)
