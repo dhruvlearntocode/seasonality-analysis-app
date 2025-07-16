@@ -20,7 +20,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-black/30 backdrop-blur-sm p-3 border border-blue-300/20 shadow-2xl text-xs rounded-lg">
         <div className="space-y-1">
             {sortedPayload.map((p, index) => (
-              <p key={index} style={{ color: p.name === 'Average Return' || p.name === 'Detrended Average' ? '#FBBF24' : p.name === 'Current Year' ? '#A9A9A9' : '#A9A9A9', fontWeight: p.name === 'Average Return' || p.name === 'Current Year' ? '600' : '400' }} className="flex justify-between items-center">
+              <p key={index} style={{ color: p.name === 'Average Return' || p.name === 'Detrended Average' ? '#FBBF24' : p.name === 'Current Year' ? '#C0C0C0' : '#E5E7EB', fontWeight: p.name === 'Average Return' || p.name === 'Current Year' ? '600' : '400' }} className="flex justify-between items-center">
                 <span>{p.name}:</span>
                 <span className="font-semibold ml-4">{p.value}%</span>
               </p>
@@ -66,7 +66,6 @@ const calculateTradingDaySeasonality = (dailyData, userStartYear, userEndYear) =
   const allYearKeys = Object.keys(dataByYear).sort();
   const mostRecentYear = allYearKeys.length > 0 ? allYearKeys[allYearKeys.length - 1] : null;
   
-  // *** FIX: Use the user-defined range for historical average calculation ***
   const pastYearKeys = allYearKeys.filter(y => {
       const yearNum = parseInt(y, 10);
       return yearNum >= userStartYear && yearNum <= userEndYear && y !== mostRecentYear;
@@ -88,7 +87,6 @@ const calculateTradingDaySeasonality = (dailyData, userStartYear, userEndYear) =
       dailyLogReturnsByDayNum[i] = [];
   }
 
-  // Use the correctly filtered pastYearKeys for the average
   pastYearKeys.forEach(year => {
       const yearData = dataByYear[year].slice(0, TRADING_DAYS + 1);
       if (yearData.length < 2) return;
@@ -399,7 +397,7 @@ function SeasonalityPage({
                               <YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={lineChartDomain} />
                               <Tooltip content={<CustomTooltip />} cursor={{stroke: '#F59E0B', strokeWidth: 1, strokeDasharray: '3 3'}}/>
                               <Area type="monotone" dataKey="Average Return" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/>
-                              {showCurrentYear && <Line type="monotone" dataKey="Current Year" stroke="#A9A9A9" strokeWidth={3} dot={false} connectNulls={false} filter="drop-shadow(0 0 10px #C0C0C0)" />}
+                              {showCurrentYear && <Line type="monotone" dataKey="Current Year" stroke="#C0C0C0" strokeWidth={3} dot={false} connectNulls={false} filter="drop-shadow(0 0 10px #C0C0C0)" />}
                               {selectedRange.start !== null && <ReferenceLine x={seasonalityData[selectedRange.start].name} stroke="#38bdf8" strokeWidth={2} />}
                               {selectedRange.end !== null && <ReferenceLine x={seasonalityData[selectedRange.end].name} stroke="#38bdf8" strokeWidth={2} />}
                               {selectedRange.start !== null && selectedRange.end !== null && <ReferenceArea x1={seasonalityData[selectedRange.start].name} x2={seasonalityData[selectedRange.end].name} stroke="#38bdf8" strokeOpacity={0.5} fill="#38bdf8" fillOpacity={0.1} />}
@@ -436,7 +434,8 @@ function InSeasonPage({
     scannerError,
     strictYears, setStrictYears,
     onTickerClick,
-    sortConfig, setSortConfig
+    sortConfig, setSortConfig,
+    assetClass, setAssetClass
 }) {
 
   const displayedResults = useMemo(() => {
@@ -492,9 +491,19 @@ function InSeasonPage({
       <h1 className="text-5xl font-bold text-slate-100 mb-2 tracking-tight text-center" style={{textShadow: '0 0 15px rgba(56, 189, 248, 0.5)'}}>In-Season Scanner</h1>
       <p className="text-blue-200/70 text-lg mb-12 text-center">Find Tickers with Strong Seasonal Winds</p>
 
-      <form onSubmit={handleSubmit} className="w-full max-w-4xl bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg p-6 control-panel relative mb-8 mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+      <form onSubmit={handleSubmit} className="w-full max-w-5xl bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg p-6 control-panel relative mb-8 mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-end">
           {/* Controls */}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="assetClass" className="text-sm text-blue-300/70">Asset Class</label>
+            <div className="relative">
+                <select id="assetClass" value={assetClass} onChange={e => setAssetClass(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-md py-2 px-3 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none appearance-none">
+                    <option value="Stocks">Stocks</option>
+                    <option value="ETFs">ETFs</option>
+                </select>
+                <ChevronDown className="w-5 h-5 absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            </div>
+          </div>
           <div className="flex flex-col gap-2">
             <label htmlFor="winRate" className="text-sm text-blue-300/70">Win Rate Threshold</label>
             <div className="flex items-center bg-slate-800 border border-slate-700 rounded-md">
@@ -626,6 +635,7 @@ function App() {
   const [scannerError, setScannerError] = useState('');
   const [strictYears, setStrictYears] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: 'winRate', direction: 'descending' });
+  const [assetClass, setAssetClass] = useState('Stocks');
 
   // --- Logic for SeasonalityPage ---
   useEffect(() => {
@@ -831,7 +841,7 @@ function App() {
     
     setTimeout(() => {
         const dataKey = `${forwardMonths}m_${seasonalityYears}y`;
-        const permutationResults = allScanData[dataKey] || [];
+        const permutationResults = allScanData[assetClass]?.[dataKey] || [];
 
         const successfulTickers = permutationResults.filter(metrics => metrics.winRate >= threshold);
         
@@ -866,8 +876,8 @@ function App() {
 
   return (
     <>
-      <Analytics />
-	    <SpeedInsights />
+	<Analytics />
+	<SpeedInsights />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         body { font-family: 'Exo 2', sans-serif; background-color: #010409; color: #E5E7EB; }
@@ -932,6 +942,8 @@ function App() {
                         onTickerClick={handleTickerClickFromScanner}
                         sortConfig={sortConfig}
                         setSortConfig={setSortConfig}
+                        assetClass={assetClass}
+                        setAssetClass={setAssetClass}
                     />
                 )}
               </motion.div>
@@ -945,6 +957,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
