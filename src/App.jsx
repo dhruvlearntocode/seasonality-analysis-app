@@ -152,28 +152,7 @@ const calculateTradingDaySeasonality = (dailyData, userStartYear, userEndYear, t
       d['Detrended Average'] = parseFloat((d['Average Return'] - trendValue).toFixed(2));
   });
   
-  const calibrationYearKey = mostRecentYear ? String(parseInt(mostRecentYear) - 1) : (allYearKeys.length > 1 ? allYearKeys[allYearKeys.length - 2] : null);
-  let monthTicks = [];
-  if (calibrationYearKey && dataByYear[calibrationYearKey]) {
-      const calibrationYearData = dataByYear[calibrationYearKey];
-      for (let month = 0; month < 12; month++) {
-          const firstDayOfMonth = calibrationYearData.find(d => d.date.getMonth() === month);
-          if (firstDayOfMonth) {
-              const dayIndex = calibrationYearData.findIndex(d => d.date.getTime() === firstDayOfMonth.date.getTime());
-              if (dayIndex !== -1) {
-                  monthTicks.push(`Day ${dayIndex + 1}`);
-              }
-          }
-      }
-  }
-  
-  if (monthTicks.length < 10) {
-    monthTicks = [];
-    for (let i = 0; i < 12; i++) {
-        monthTicks.push(`Day ${Math.round(tradingDaysInYear / 12 * i) + 1}`);
-    }
-  }
-
+  const monthTicks = getMonthTicks(tradingDaysInYear);
 
   return { chartData: finalChartData, yearKeys: pastYearKeys, monthTicks };
 };
@@ -1015,4 +994,3 @@ function App() {
 }
 
 export default App;
-
