@@ -326,7 +326,8 @@ function SeasonalityPage({
                   <Telescope size={24} className="text-blue-300/70"/>
                   <input 
                       id="ticker" type="text" value={ticker} onChange={(e) => setTicker(e.target.value)} 
-                      className="w-full bg-transparent text-2xl text-slate-100 uppercase placeholder-slate-600 focus:outline-none border-b-2 border-slate-700 focus:border-amber-500 pb-1 transition-colors" 
+                      className="w-full bg-transparent text-2xl text-slate-100 uppercase placeholder:text-slate-500 placeholder:normal-case focus:outline-none border-b-2 border-slate-700 focus:border-amber-500 pb-1 transition-colors" 
+                      placeholder="Enter Yahoo Finance Ticker"
                   />
               </div>
               <div className="flex items-center gap-4">
