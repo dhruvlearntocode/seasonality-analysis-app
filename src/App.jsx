@@ -500,6 +500,7 @@ function InSeasonPage({
                 <select id="assetClass" value={assetClass} onChange={e => setAssetClass(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-md py-2 px-3 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none appearance-none">
                     <option value="Stocks">Stocks</option>
                     <option value="ETFs">ETFs</option>
+                    <option value="India Stocks">India Stocks</option>
                 </select>
                 <ChevronDown className="w-5 h-5 absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
@@ -947,6 +948,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
