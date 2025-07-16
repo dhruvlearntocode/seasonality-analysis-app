@@ -693,7 +693,7 @@ function App() {
               throw new Error(errorData.error || `API Error (status: ${response.status})`);
           } else {
               const errorText = await response.text();
-              throw new Error(`Network response error (status: ${response.status}). Response: ${errorText.substring(0, 200)}`);
+              throw new Error(`Network response error (status: ${response.status}). Response: ${errorText.substring(0, 500)}`);
           }
       }
       
@@ -712,6 +712,11 @@ function App() {
       }
       for (const year in dataByYear) { dataByYear[year].sort((a, b) => a.date - b.date); }
       setPriceDataByYear(dataByYear);
+
+      const firstActualYear = new Date(Object.keys(formattedDailyData)[0]).getFullYear();
+      if (firstActualYear > startYearNum) {
+          setStartYear(firstActualYear);
+      }
 
       const calculatedData = calculateTradingDaySeasonality(formattedDailyData, startYearNum, endYearNum);
       if (calculatedData === null || calculatedData.chartData.length === 0) throw new Error("Calculation failed: Could not process seasonality from data.");
@@ -860,7 +865,7 @@ function App() {
 
   return (
     <>
-      	<Analytics />
+		<Analytics />
 	<SpeedInsights />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
@@ -941,6 +946,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
