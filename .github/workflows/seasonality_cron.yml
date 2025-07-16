@@ -1,11 +1,11 @@
 # FILE: .github/workflows/seasonality_cron.yml
-# --- Updated with a more robust git pull strategy ---
+# --- Corrected YAML syntax and maintained robust git sync ---
 
 name: Calculate Daily Seasonality
 
 on:
   schedule:
-    # --- FIX: Runs at 11:00 UTC, which is 6:00 AM EST ---
+    # Runs at 11:00 UTC, which is 6:00 AM EST / 7:00 AM EDT
     - cron: '0 11 * * *'
   
   # Allows you to run this workflow manually from the Actions tab on GitHub for testing.
@@ -13,40 +13,42 @@ on:
 
 jobs:
   calculate-and-commit:
+    # This is the crucial permission grant that allows the Action to push code back to your repository.
     permissions:
       contents: write
     
-    strategy:
-      fail-fast: false
-      matrix:
-        run: [1]
-    retries: 2
-
+    # Use a standard, up-to-date virtual machine for the job.
     runs-on: ubuntu-latest
+
     steps:
+      # Step 1: Check out your repository's code onto the runner.
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Step 2: Set up the Python environment.
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
+      # Step 3: Install the required Python libraries.
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install yfinance pandas numpy
 
+      # Step 4: Execute your Python script.
       - name: Run Seasonality Calculation Script
         run: python worker/calculate_seasonality.py
 
+      # Step 5: Commit and push the results file if it has changed.
       - name: Commit and push if changed
         run: |
           # Configure git with a bot user name and email to make the commit.
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
-          # --- FIX: Use rebase strategy to sync with remote changes ---
+          # Use rebase strategy to sync with remote changes
           # This will fetch the latest changes and re-apply our local commit on top,
           # avoiding the "rejected" error.
           git pull --rebase
