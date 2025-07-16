@@ -15,16 +15,6 @@ const formatXAxis = (tickItem, tradingDaysInYear) => {
   return monthNames[monthApproximation] || '';
 };
 
-const getMonthTicks = (tradingDaysInYear) => {
-    const ticks = [];
-    // Create a tick for the start of each month, adjusted for the asset's calendar
-    for (let i = 0; i < 12; i++) {
-        ticks.push(`Day ${Math.round(tradingDaysInYear / 12 * i) + 1}`);
-    }
-    return ticks;
-};
-
-
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const sortedPayload = [...payload].sort((a, b) => a.name === 'Average Return' ? -1 : b.name === 'Average Return' ? 1 : a.name.localeCompare(b.name));
@@ -152,7 +142,31 @@ const calculateTradingDaySeasonality = (dailyData, userStartYear, userEndYear, t
       d['Detrended Average'] = parseFloat((d['Average Return'] - trendValue).toFixed(2));
   });
 
-  return { chartData: finalChartData, yearKeys: pastYearKeys };
+  // --- Dynamic Month Tick Calculation ---
+  const calibrationYearKey = mostRecentYear ? String(parseInt(mostRecentYear) - 1) : null;
+  let monthTicks = [];
+  if (calibrationYearKey && dataByYear[calibrationYearKey]) {
+      const calibrationYearData = dataByYear[calibrationYearKey];
+      for (let month = 0; month < 12; month++) {
+          const firstDayOfMonth = calibrationYearData.find(d => d.date.getMonth() === month);
+          if (firstDayOfMonth) {
+              const dayIndex = calibrationYearData.findIndex(d => d.date.getTime() === firstDayOfMonth.date.getTime());
+              if (dayIndex !== -1) {
+                  monthTicks.push(`Day ${dayIndex + 1}`);
+              }
+          }
+      }
+  }
+  // Fallback if calibration fails
+  if (monthTicks.length < 10) {
+    monthTicks = [];
+    for (let i = 0; i < 12; i++) {
+        monthTicks.push(`Day ${Math.round(tradingDaysInYear / 12 * i) + 1}`);
+    }
+  }
+
+
+  return { chartData: finalChartData, yearKeys: pastYearKeys, monthTicks };
 };
 
 const calculateMonthlyReturns = (dailyData, startYear, endYear) => {
@@ -277,7 +291,8 @@ function SeasonalityPage({
     handleChartClick,
     resetSelection,
     showCurrentYear, setShowCurrentYear,
-    assetClassForChart
+    assetClassForChart,
+    chartMonthTicks
 }) {
   
   const metricDescriptions = {
@@ -298,7 +313,6 @@ function SeasonalityPage({
   const descriptions = rangeMetrics ? rangeMetricDescriptions : metricDescriptions;
   
   const tradingDaysInYear = ASSET_CLASS_CONFIG[assetClassForChart]?.trading_days_in_year || 251;
-  const monthTicks = getMonthTicks(tradingDaysInYear);
 
   const lineChartDomain = useMemo(() => {
     if (!seasonalityData) return ['auto', 'auto'];
@@ -409,7 +423,7 @@ function SeasonalityPage({
                           <ComposedChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }} onClick={handleChartClick}>
                               <defs><radialGradient id="starGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%"><stop offset="0%" stopColor="#FBBF24" stopOpacity={0.4}/><stop offset="100%" stopColor="#F59E0B" stopOpacity={0}/></radialGradient></defs>
                               <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} />
-                              <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={monthTicks} tickFormatter={(tick) => formatXAxis(tick, tradingDaysInYear)} />
+                              <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={chartMonthTicks} tickFormatter={(tick) => formatXAxis(tick, tradingDaysInYear)} />
                               <YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={lineChartDomain} />
                               <Tooltip content={<CustomTooltip />} cursor={{stroke: '#F59E0B', strokeWidth: 1, strokeDasharray: '3 3'}}/>
                               <Area type="monotone" dataKey="Average Return" stroke="#FBBF24" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/>
@@ -423,7 +437,7 @@ function SeasonalityPage({
 
                   <div className="h-[300px] mt-24">
                       <h2 className="text-3xl font-bold text-center mb-6 text-slate-200 tracking-tight">Detrended Seasonal Path</h2>
-                      <ResponsiveContainer width="100%" height="100%"><AreaChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}><CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} /><XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={monthTicks} tickFormatter={(tick) => formatXAxis(tick, tradingDaysInYear)} /><YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={detrendedDomain} /><Tooltip content={<CustomTooltip />} cursor={{stroke: '#F59E0B', strokeWidth: 1, strokeDasharray: '3 3'}}/><Area type="monotone" dataKey="Detrended Average" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/></AreaChart></ResponsiveContainer>
+                      <ResponsiveContainer width="100%" height="100%"><AreaChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}><CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} /><XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={chartMonthTicks} tickFormatter={(tick) => formatXAxis(tick, tradingDaysInYear)} /><YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={detrendedDomain} /><Tooltip content={<CustomTooltip />} cursor={{stroke: '#F59E0B', strokeWidth: 1, strokeDasharray: '3 3'}}/><Area type="monotone" dataKey="Detrended Average" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/></AreaChart></ResponsiveContainer>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch mt-24">
@@ -634,10 +648,10 @@ const ASSET_CLASS_CONFIG = {
 function getAssetClassFromTicker(ticker) {
     if (ticker.endsWith('-USD')) return 'Crypto';
     if (ticker.endsWith('.NS')) return 'India Stocks';
-    // Add more rules here if needed, e.g., for ETFs vs Stocks
-    // For now, assume it's a stock if no other rule matches.
-    // A more robust way could be to check if it's in the ETF list from the scanner data.
-    // Defaulting to Stocks for now.
+    // A more robust way would be to check if it's in the ETF list from the scanner data.
+    // For now, we assume non-crypto, non-India are ETFs if they are common indexes, else stocks.
+    const commonETFs = ['SPY', 'QQQ', 'IWM', 'DIA', 'GLD', 'SLV', 'USO'];
+    if (commonETFs.includes(ticker)) return 'ETFs';
     return 'Stocks';
 }
 
@@ -661,6 +675,7 @@ function App() {
   const [refetchTrigger, setRefetchTrigger] = useState(0);
   const [showCurrentYear, setShowCurrentYear] = useState(false);
   const [currentAssetClassForChart, setCurrentAssetClassForChart] = useState('ETFs');
+  const [chartMonthTicks, setChartMonthTicks] = useState([]);
 
   // --- State for InSeasonPage ---
   const [allScanData, setAllScanData] = useState(null);
@@ -757,7 +772,6 @@ function App() {
           setStartYear(firstActualYear);
       }
       
-      // *** FIX: Dynamically determine asset class for chart ***
       const assetTypeForChart = getAssetClassFromTicker(ticker.toUpperCase());
       setCurrentAssetClassForChart(assetTypeForChart);
       const tradingDaysInYear = ASSET_CLASS_CONFIG[assetTypeForChart]?.trading_days_in_year || 251;
@@ -766,6 +780,7 @@ function App() {
       if (calculatedData === null || calculatedData.chartData.length === 0) throw new Error("Calculation failed: Could not process seasonality from data.");
       
       setSeasonalityData(calculatedData.chartData);
+      setChartMonthTicks(calculatedData.monthTicks);
       setMonthlyData(calculateMonthlyReturns(formattedDailyData, startYearNum, endYearNum));
       setDayOfWeekData(calculateDayOfWeekReturns(formattedDailyData));
 
@@ -960,6 +975,7 @@ function App() {
                         showCurrentYear={showCurrentYear}
                         setShowCurrentYear={setShowCurrentYear}
                         assetClassForChart={currentAssetClassForChart}
+                        chartMonthTicks={chartMonthTicks}
                     />
                 )}
                 {page === 'in-season' && (
@@ -992,3 +1008,4 @@ function App() {
 }
 
 export default App;
+
