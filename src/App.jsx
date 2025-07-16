@@ -631,6 +631,17 @@ const ASSET_CLASS_CONFIG = {
     'Crypto': { trading_days_in_year: 365 },
 };
 
+function getAssetClassFromTicker(ticker) {
+    if (ticker.endsWith('-USD')) return 'Crypto';
+    if (ticker.endsWith('.NS')) return 'India Stocks';
+    // Add more rules here if needed, e.g., for ETFs vs Stocks
+    // For now, assume it's a stock if no other rule matches.
+    // A more robust way could be to check if it's in the ETF list from the scanner data.
+    // Defaulting to Stocks for now.
+    return 'Stocks';
+}
+
+
 function App() {
   const [page, setPage] = useState('seasonality');
 
@@ -745,8 +756,12 @@ function App() {
       if (firstActualYear > startYearNum) {
           setStartYear(firstActualYear);
       }
+      
+      // *** FIX: Dynamically determine asset class for chart ***
+      const assetTypeForChart = getAssetClassFromTicker(ticker.toUpperCase());
+      setCurrentAssetClassForChart(assetTypeForChart);
+      const tradingDaysInYear = ASSET_CLASS_CONFIG[assetTypeForChart]?.trading_days_in_year || 251;
 
-      const tradingDaysInYear = ASSET_CLASS_CONFIG[currentAssetClassForChart]?.trading_days_in_year || 251;
       const calculatedData = calculateTradingDaySeasonality(formattedDailyData, startYearNum, endYearNum, tradingDaysInYear);
       if (calculatedData === null || calculatedData.chartData.length === 0) throw new Error("Calculation failed: Could not process seasonality from data.");
       
