@@ -696,14 +696,7 @@ function App() {
           throw new Error('No valid historical data returned for the specified range.');
       }
       
-      const formattedDailyData = {};
-      const timestamps = [];
-      for (const dateStr in data) {
-          formattedDailyData[dateStr] = { 'Close': data[dateStr].Close };
-          timestamps.push(new Date(dateStr).getTime() / 1000);
-      }
-      
-      const firstActualYear = new Date(timestamps[0] * 1000).getFullYear();
+      const formattedDailyData = data;
       
       const dataByYear = {};
       for (const dateStr in formattedDailyData) {
@@ -862,7 +855,7 @@ function App() {
   return (
     <>
 	<Analytics />
-	<SpeedInsights />
+	<SpeedInsights />    
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         body { font-family: 'Exo 2', sans-serif; background-color: #010409; color: #E5E7EB; }
