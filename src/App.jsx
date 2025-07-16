@@ -7,11 +7,23 @@ import { Search, BarChart2, TrendingUp, TrendingDown, Percent, AlertCircle, Tele
 
 // --- Helper Functions (Shared) ---
 
-const formatXAxis = (tickItem) => {
+const formatXAxis = (tickItem, tradingDaysInYear) => {
   const dayNum = parseInt(tickItem.split(' ')[1], 10);
-  const monthMap = { 1: 'Jan', 22: 'Feb', 43: 'Mar', 64: 'Apr', 85: 'May', 106: 'Jun', 127: 'Jul', 148: 'Aug', 169: 'Sep', 190: 'Oct', 211: 'Nov', 232: 'Dec' };
-  return monthMap[dayNum] || '';
+  // Calculate the approximate month based on the asset's specific trading calendar
+  const monthApproximation = Math.floor((dayNum / tradingDaysInYear) * 12);
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return monthNames[monthApproximation] || '';
 };
+
+const getMonthTicks = (tradingDaysInYear) => {
+    const ticks = [];
+    // Create a tick for the start of each month, adjusted for the asset's calendar
+    for (let i = 0; i < 12; i++) {
+        ticks.push(`Day ${Math.round(tradingDaysInYear / 12 * i) + 1}`);
+    }
+    return ticks;
+};
+
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -47,9 +59,9 @@ const LoadingSpinner = ({text = "Calibrating Trajectory"}) => (
 
 // --- Seasonality Page Components & Logic ---
 
-const calculateTradingDaySeasonality = (dailyData, userStartYear, userEndYear) => {
+const calculateTradingDaySeasonality = (dailyData, userStartYear, userEndYear, tradingDaysInYear) => {
   if (!dailyData || Object.keys(dailyData).length === 0) return null;
-  const TRADING_DAYS = 251;
+  const TRADING_DAYS = tradingDaysInYear;
   
   const dataByYear = {};
   for (const dateStr in dailyData) {
@@ -264,7 +276,8 @@ function SeasonalityPage({
     handleFetchSeasonality,
     handleChartClick,
     resetSelection,
-    showCurrentYear, setShowCurrentYear
+    showCurrentYear, setShowCurrentYear,
+    assetClassForChart
 }) {
   
   const metricDescriptions = {
@@ -284,6 +297,9 @@ function SeasonalityPage({
   const metrics = rangeMetrics || fullMetrics;
   const descriptions = rangeMetrics ? rangeMetricDescriptions : metricDescriptions;
   
+  const tradingDaysInYear = ASSET_CLASS_CONFIG[assetClassForChart]?.trading_days_in_year || 251;
+  const monthTicks = getMonthTicks(tradingDaysInYear);
+
   const lineChartDomain = useMemo(() => {
     if (!seasonalityData) return ['auto', 'auto'];
     const values = seasonalityData.flatMap(d => [d['Average Return'], showCurrentYear ? d['Current Year'] : -Infinity]).filter(v => v !== undefined && v !== null && isFinite(v));
@@ -393,7 +409,7 @@ function SeasonalityPage({
                           <ComposedChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }} onClick={handleChartClick}>
                               <defs><radialGradient id="starGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%"><stop offset="0%" stopColor="#FBBF24" stopOpacity={0.4}/><stop offset="100%" stopColor="#F59E0B" stopOpacity={0}/></radialGradient></defs>
                               <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} />
-                              <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={['Day 1', 'Day 22', 'Day 43', 'Day 64', 'Day 85', 'Day 106', 'Day 127', 'Day 148', 'Day 169', 'Day 190', 'Day 211', 'Day 232']} tickFormatter={formatXAxis} />
+                              <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={monthTicks} tickFormatter={(tick) => formatXAxis(tick, tradingDaysInYear)} />
                               <YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={lineChartDomain} />
                               <Tooltip content={<CustomTooltip />} cursor={{stroke: '#F59E0B', strokeWidth: 1, strokeDasharray: '3 3'}}/>
                               <Area type="monotone" dataKey="Average Return" stroke="#FBBF24" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/>
@@ -407,7 +423,7 @@ function SeasonalityPage({
 
                   <div className="h-[300px] mt-24">
                       <h2 className="text-3xl font-bold text-center mb-6 text-slate-200 tracking-tight">Detrended Seasonal Path</h2>
-                      <ResponsiveContainer width="100%" height="100%"><AreaChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}><CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} /><XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={['Day 1', 'Day 22', 'Day 43', 'Day 64', 'Day 85', 'Day 106', 'Day 127', 'Day 148', 'Day 169', 'Day 190', 'Day 211', 'Day 232']} tickFormatter={formatXAxis} /><YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={detrendedDomain} /><Tooltip content={<CustomTooltip />} cursor={{stroke: '#F59E0B', strokeWidth: 1, strokeDasharray: '3 3'}}/><Area type="monotone" dataKey="Detrended Average" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/></AreaChart></ResponsiveContainer>
+                      <ResponsiveContainer width="100%" height="100%"><AreaChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}><CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} /><XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={monthTicks} tickFormatter={(tick) => formatXAxis(tick, tradingDaysInYear)} /><YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={detrendedDomain} /><Tooltip content={<CustomTooltip />} cursor={{stroke: '#F59E0B', strokeWidth: 1, strokeDasharray: '3 3'}}/><Area type="monotone" dataKey="Detrended Average" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/></AreaChart></ResponsiveContainer>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch mt-24">
@@ -501,6 +517,7 @@ function InSeasonPage({
                     <option value="Stocks">Stocks</option>
                     <option value="ETFs">ETFs</option>
                     <option value="India Stocks">India Stocks</option>
+                    <option value="Crypto">Crypto</option>
                 </select>
                 <ChevronDown className="w-5 h-5 absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
@@ -606,6 +623,14 @@ function InSeasonPage({
 /**
  * Main application component with navigation and state management.
  */
+
+const ASSET_CLASS_CONFIG = {
+    'Stocks': { trading_days_in_year: 251 },
+    'ETFs': { trading_days_in_year: 251 },
+    'India Stocks': { trading_days_in_year: 252 },
+    'Crypto': { trading_days_in_year: 365 },
+};
+
 function App() {
   const [page, setPage] = useState('seasonality');
 
@@ -624,6 +649,7 @@ function App() {
   const [priceDataByYear, setPriceDataByYear] = useState(null);
   const [refetchTrigger, setRefetchTrigger] = useState(0);
   const [showCurrentYear, setShowCurrentYear] = useState(false);
+  const [currentAssetClassForChart, setCurrentAssetClassForChart] = useState('ETFs');
 
   // --- State for InSeasonPage ---
   const [allScanData, setAllScanData] = useState(null);
@@ -720,7 +746,8 @@ function App() {
           setStartYear(firstActualYear);
       }
 
-      const calculatedData = calculateTradingDaySeasonality(formattedDailyData, startYearNum, endYearNum);
+      const tradingDaysInYear = ASSET_CLASS_CONFIG[currentAssetClassForChart]?.trading_days_in_year || 251;
+      const calculatedData = calculateTradingDaySeasonality(formattedDailyData, startYearNum, endYearNum, tradingDaysInYear);
       if (calculatedData === null || calculatedData.chartData.length === 0) throw new Error("Calculation failed: Could not process seasonality from data.");
       
       setSeasonalityData(calculatedData.chartData);
@@ -847,6 +874,7 @@ function App() {
     const currentYear = new Date().getFullYear();
     setStartYear(currentYear - seasonalityYears);
     setEndYear(currentYear - 1);
+    setCurrentAssetClassForChart(assetClass); // Set the asset class for the chart
     setPage('seasonality');
     setRefetchTrigger(prev => prev + 1);
   };
@@ -916,6 +944,7 @@ function App() {
                         resetSelection={resetSelection}
                         showCurrentYear={showCurrentYear}
                         setShowCurrentYear={setShowCurrentYear}
+                        assetClassForChart={currentAssetClassForChart}
                     />
                 )}
                 {page === 'in-season' && (
@@ -948,6 +977,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
