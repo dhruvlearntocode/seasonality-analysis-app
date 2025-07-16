@@ -395,7 +395,7 @@ function SeasonalityPage({
                               <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={['Day 1', 'Day 22', 'Day 43', 'Day 64', 'Day 85', 'Day 106', 'Day 127', 'Day 148', 'Day 169', 'Day 190', 'Day 211', 'Day 232']} tickFormatter={formatXAxis} />
                               <YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={lineChartDomain} />
                               <Tooltip content={<CustomTooltip />} cursor={{stroke: '#F59E0B', strokeWidth: 1, strokeDasharray: '3 3'}}/>
-                              <Area type="monotone" dataKey="Average Return" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/>
+                              <Area type="monotone" dataKey="Average Return" stroke="#FBBF24" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/>
                               {showCurrentYear && <Line type="monotone" dataKey="Current Year" stroke="#C0C0C0" strokeWidth={3} dot={false} connectNulls={false} filter="drop-shadow(0 0 10px #C0C0C0)" />}
                               {selectedRange.start !== null && <ReferenceLine x={seasonalityData[selectedRange.start].name} stroke="#38bdf8" strokeWidth={2} />}
                               {selectedRange.end !== null && <ReferenceLine x={seasonalityData[selectedRange.end].name} stroke="#38bdf8" strokeWidth={2} />}
@@ -687,8 +687,14 @@ function App() {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-          const errorText = await response.text().catch(() => "Could not read error response.");
-          throw new Error(`Network response error (status: ${response.status}). Body: ${errorText.substring(0, 500)}`);
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.indexOf("application/json") !== -1) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || `API Error (status: ${response.status})`);
+          } else {
+              const errorText = await response.text();
+              throw new Error(`Network response error (status: ${response.status}). Response: ${errorText.substring(0, 200)}`);
+          }
       }
       
       const data = await response.json();
@@ -933,7 +939,6 @@ function App() {
 }
 
 export default App;
-
 
 
 
