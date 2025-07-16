@@ -682,48 +682,34 @@ function App() {
     setSelectedRange({ start: null, end: null });
     setPriceDataByYear(null);
 
-    const fetchStartDate = new Date(startYearNum, 0, 1);
-    const fetchEndDate = new Date(); // Always fetch up to today
-    const period1 = Math.floor(fetchStartDate.getTime() / 1000);
-    const period2 = Math.floor(fetchEndDate.getTime() / 1000);
-    
-    const proxyUrl = 'https://corsproxy.io/?';
-    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker.toUpperCase()}?period1=${period1}&period2=${period2}&interval=1d`;
-    const url = proxyUrl + encodeURIComponent(targetUrl);
+    const url = `/api/fetch_seasonality?ticker=${ticker.toUpperCase()}&startYear=${startYearNum}`;
 
     try {
       const response = await fetch(url);
       if (!response.ok) {
-          const errorText = await response.text().catch(() => "Could not read error response.");
-          throw new Error(`Network response error (status: ${response.status}). Body: ${errorText.substring(0, 200)}`);
+          const errorData = await response.json().catch(() => ({error: "An unknown API error occurred."}));
+          throw new Error(errorData.error || `Network response error (status: ${response.status})`);
       }
       
       const data = await response.json();
-      if (!data || !data.chart || data.chart.error) throw new Error(data?.chart?.error?.description || 'API Error: Invalid ticker or data format.');
-      const result = data.chart.result?.[0];
-      const timestamps = result?.timestamp;
-      const adjClose = result?.indicators?.adjclose?.[0]?.adjclose;
-      if (!result || !timestamps || !adjClose || timestamps.length === 0) throw new Error('No valid historical data returned for the specified range.');
-      
-      // const firstActualYear = new Date(timestamps[0] * 1000).getFullYear();
-      // We keep the user's end year for calculations, not the fetched end year
-      // setEndYear(lastActualYear);
-
-      const formattedDailyData = {};
-      for (let i = 0; i < timestamps.length; i++) {
-        if (adjClose[i] === null) continue;
-        const date = new Date(timestamps[i] * 1000);
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const dateString = `${date.getFullYear()}-${month}-${day}`;
-        formattedDailyData[dateString] = { '4. close': adjClose[i] };
+      if (Object.keys(data).length === 0) {
+          throw new Error('No valid historical data returned for the specified range.');
       }
+      
+      const formattedDailyData = {};
+      const timestamps = [];
+      for (const dateStr in data) {
+          formattedDailyData[dateStr] = { 'Close': data[dateStr].Close };
+          timestamps.push(new Date(dateStr).getTime() / 1000);
+      }
+      
+      const firstActualYear = new Date(timestamps[0] * 1000).getFullYear();
       
       const dataByYear = {};
       for (const dateStr in formattedDailyData) {
         const year = new Date(dateStr).getFullYear();
         if (!dataByYear[year]) dataByYear[year] = [];
-        dataByYear[year].push({ date: new Date(dateStr), price: formattedDailyData[dateStr]['4. close'] });
+        dataByYear[year].push({ date: new Date(dateStr), price: formattedDailyData[dateStr]['Close'] });
       }
       for (const year in dataByYear) { dataByYear[year].sort((a, b) => a.date - b.date); }
       setPriceDataByYear(dataByYear);
@@ -742,15 +728,15 @@ function App() {
       for (let year = startYearNum; year <= endYearNum; year++) {
           const yearData = Object.entries(formattedDailyData).filter(([date]) => date.startsWith(year.toString())).sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB));
           if (yearData.length > 1) {
-              const firstDayPrice = yearData[0][1]['4. close'];
-              const lastDayPrice = yearData[yearData.length - 1][1]['4. close'];
+              const firstDayPrice = yearData[0][1]['Close'];
+              const lastDayPrice = yearData[yearData.length - 1][1]['Close'];
               if (firstDayPrice > 0 && (lastDayPrice / firstDayPrice) - 1 > 0) { positiveYearsCount++; }
           }
       }
       const positiveYearsRate = (positiveYearsCount / totalYears) * 100;
       const sortedDates = Object.entries(formattedDailyData).sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB));
-      const firstDayPrice = sortedDates[0][1]['4. close'];
-      const lastDayPrice = sortedDates[sortedDates.length - 1][1]['4. close'];
+      const firstDayPrice = sortedDates[0][1]['Close'];
+      const lastDayPrice = sortedDates[sortedDates.length - 1][1]['Close'];
       const totalPoints = lastDayPrice - firstDayPrice;
       const volatility = calculateVolatility(formattedDailyData);
       setFullMetrics({ annualizedReturn: annualizedReturn.toFixed(2), positiveYears: positiveYearsRate.toFixed(1), totalPoints: totalPoints.toFixed(2), volatility: volatility.toFixed(2) });
@@ -876,7 +862,7 @@ function App() {
   return (
     <>
 	<Analytics />
-	<SpeedInsights />	    
+	<SpeedInsights />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         body { font-family: 'Exo 2', sans-serif; background-color: #010409; color: #E5E7EB; }
