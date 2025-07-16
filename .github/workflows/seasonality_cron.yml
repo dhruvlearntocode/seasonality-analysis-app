@@ -5,8 +5,8 @@ name: Calculate Daily Seasonality
 
 on:
   schedule:
-    # Runs at 1 AM UTC every day (after market closes)
-    - cron: '0 1 * * *'
+    # --- FIX: Runs at 11:00 UTC, which is 6:00 AM EST ---
+    - cron: '0 11 * * *'
   
   # Allows you to run this workflow manually from the Actions tab on GitHub for testing.
   workflow_dispatch:
