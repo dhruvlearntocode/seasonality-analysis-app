@@ -687,8 +687,8 @@ function App() {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-          const errorText = await response.text().catch(() => "Could not read error response.");
-          throw new Error(`Network response error (status: ${response.status}). Body: ${errorText.substring(0, 500)}`);
+          const errorData = await response.json().catch(() => ({error: "An unknown API error occurred."}));
+          throw new Error(errorData.error || `Network response error (status: ${response.status})`);
       }
       
       const data = await response.json();
