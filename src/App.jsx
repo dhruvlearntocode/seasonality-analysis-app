@@ -15,6 +15,16 @@ const formatXAxis = (tickItem, tradingDaysInYear) => {
   return monthNames[monthApproximation] || '';
 };
 
+const getMonthTicks = (tradingDaysInYear) => {
+    const ticks = [];
+    // Create a tick for the start of each month, adjusted for the asset's calendar
+    for (let i = 0; i < 12; i++) {
+        ticks.push(`Day ${Math.round(tradingDaysInYear / 12 * i) + 1}`);
+    }
+    return ticks;
+};
+
+
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const sortedPayload = [...payload].sort((a, b) => a.name === 'Average Return' ? -1 : b.name === 'Average Return' ? 1 : a.name.localeCompare(b.name));
@@ -141,9 +151,8 @@ const calculateTradingDaySeasonality = (dailyData, userStartYear, userEndYear, t
       const trendValue = (i / (TRADING_DAYS - 1)) * finalAvgReturn;
       d['Detrended Average'] = parseFloat((d['Average Return'] - trendValue).toFixed(2));
   });
-
-  // --- Dynamic Month Tick Calculation ---
-  const calibrationYearKey = mostRecentYear ? String(parseInt(mostRecentYear) - 1) : null;
+  
+  const calibrationYearKey = mostRecentYear ? String(parseInt(mostRecentYear) - 1) : (allYearKeys.length > 1 ? allYearKeys[allYearKeys.length - 2] : null);
   let monthTicks = [];
   if (calibrationYearKey && dataByYear[calibrationYearKey]) {
       const calibrationYearData = dataByYear[calibrationYearKey];
@@ -157,7 +166,7 @@ const calculateTradingDaySeasonality = (dailyData, userStartYear, userEndYear, t
           }
       }
   }
-  // Fallback if calibration fails
+  
   if (monthTicks.length < 10) {
     monthTicks = [];
     for (let i = 0; i < 12; i++) {
@@ -648,8 +657,6 @@ const ASSET_CLASS_CONFIG = {
 function getAssetClassFromTicker(ticker) {
     if (ticker.endsWith('-USD')) return 'Crypto';
     if (ticker.endsWith('.NS')) return 'India Stocks';
-    // A more robust way would be to check if it's in the ETF list from the scanner data.
-    // For now, we assume non-crypto, non-India are ETFs if they are common indexes, else stocks.
     const commonETFs = ['SPY', 'QQQ', 'IWM', 'DIA', 'GLD', 'SLV', 'USO'];
     if (commonETFs.includes(ticker)) return 'ETFs';
     return 'Stocks';
