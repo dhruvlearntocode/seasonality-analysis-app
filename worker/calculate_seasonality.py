@@ -1,5 +1,5 @@
 # FILE: worker/calculate_seasonality.py
-# --- Optimized for multiple asset classes and robust fetching ---
+# --- Updated to include "India Stocks" asset class ---
 
 import yfinance as yf
 import pandas as pd
@@ -10,29 +10,22 @@ import os
 import time
 
 # --- Configuration ---
-# Get the absolute path of the directory where this script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-# Get the project root directory by going one level up
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
-
-# Define paths using the project root to ensure they are always correct
 OUTPUT_FILE = os.path.join(PROJECT_ROOT, 'public', 'scan_results.json')
 
-# Define the asset classes and their corresponding ticker files
+# --- FIX: Added 'India Stocks' to the asset configurations ---
 ASSET_CONFIGS = [
     {'name': 'Stocks', 'file': os.path.join(PROJECT_ROOT, 'worker', 'stocks.txt')},
-    {'name': 'ETFs', 'file': os.path.join(PROJECT_ROOT, 'worker', 'etfs.txt')}
+    {'name': 'ETFs', 'file': os.path.join(PROJECT_ROOT, 'worker', 'etfs.txt')},
+    {'name': 'India Stocks', 'file': os.path.join(PROJECT_ROOT, 'worker', 'india_stocks.txt')}
 ]
 
 FORWARD_PERIODS_MONTHS = [1, 2, 3]
-LOOKBACK_PERIODS_YEARS = sorted([5, 10, 20], reverse=True)
+LOOKBACK_PERIODS_YEARS = sorted([5, 10, 20], reverse=True) 
 MAX_LOOKBACK = LOOKBACK_PERIODS_YEARS[0]
 
-# --- Helper Function to Fetch Price Data ---
 def fetch_price_history(ticker):
-    """
-    Fetches historical daily price data for a single ticker for the maximum lookback period.
-    """
     print(f"    - Fetching max ({MAX_LOOKBACK} years) data for {ticker}...")
     end_date = datetime.now()
     start_date = end_date - timedelta(days=MAX_LOOKBACK * 365.25)
@@ -43,16 +36,11 @@ def fetch_price_history(ticker):
     if data.empty:
         raise ValueError(f"No data returned for ticker {ticker}.")
     
-    # Remove timezone information to prevent comparison errors
     data.index = data.index.tz_localize(None)
     
     return data['Close']
 
-# --- Core Logic to Calculate Metrics for a Single Ticker ---
 def calculate_metrics_for_ticker(prices, forward_months, today):
-    """
-    Calculates all performance metrics for a single ticker's price history.
-    """
     forward_days = forward_months * 21
     all_returns = []
     
@@ -100,11 +88,7 @@ def calculate_metrics_for_ticker(prices, forward_months, today):
         'yearsOfData': len(all_returns)
     }
 
-# --- Main Execution Block ---
 def run_scan():
-    """
-    Orchestrates the entire process with one-by-one API calls for robustness.
-    """
     today = datetime.today()
     print(f"Starting daily seasonality scan for date: {today.strftime('%Y-%m-%d')}")
     
@@ -128,7 +112,6 @@ def run_scan():
             print(f"  - INFO: No tickers found in {ticker_file}. Skipping.")
             continue
         
-        # Initialize the results structure for this asset class
         asset_results = {}
         for lookback in LOOKBACK_PERIODS_YEARS:
             for forward in FORWARD_PERIODS_MONTHS:
@@ -138,15 +121,12 @@ def run_scan():
         for ticker in tickers:
             print(f"\n[Processing Ticker: {ticker}]")
             try:
-                # Fetch data for the single ticker
                 prices = fetch_price_history(ticker)
                 
-                # Loop through lookback periods and slice the in-memory data
                 for lookback in LOOKBACK_PERIODS_YEARS:
                     lookback_start_date = today - timedelta(days=lookback * 365.25)
                     prices_for_lookback = prices[prices.index >= lookback_start_date]
                     
-                    # Loop through forward periods and calculate metrics
                     for forward in FORWARD_PERIODS_MONTHS:
                         key = f"{forward}m_{lookback}y"
                         metrics = calculate_metrics_for_ticker(prices_for_lookback, forward, today)
@@ -156,7 +136,6 @@ def run_scan():
                             asset_results[key].append(metrics)
                 
                 print(f"  - SUCCESS: Finished all permutations for {ticker}.")
-                # Add a small delay to be respectful to the API provider
                 time.sleep(0.5) 
 
             except Exception as e:
