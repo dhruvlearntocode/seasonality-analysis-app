@@ -1,5 +1,5 @@
 # FILE: worker/calculate_seasonality.py
-# --- Updated to include "India Stocks" asset class ---
+# --- Updated to process tickers sequentially for reliability and include Crypto ---
 
 import yfinance as yf
 import pandas as pd
@@ -10,22 +10,30 @@ import os
 import time
 
 # --- Configuration ---
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
-OUTPUT_FILE = os.path.join(PROJECT_ROOT, 'public', 'scan_results.json')
+# Use simple relative paths. The GitHub Action's working directory is the project root.
+TICKER_FILE_STOCKS = 'worker/stocks.txt'
+TICKER_FILE_ETFS = 'worker/etfs.txt'
+TICKER_FILE_INDIA = 'worker/india_stocks.txt'
+TICKER_FILE_CRYPTO = 'worker/crypto.txt'
+OUTPUT_FILE = 'public/scan_results.json'
 
-# --- FIX: Added 'India Stocks' to the asset configurations ---
+# Define the asset classes and their corresponding ticker files and trading days
 ASSET_CONFIGS = [
-    {'name': 'Stocks', 'file': os.path.join(PROJECT_ROOT, 'worker', 'stocks.txt')},
-    {'name': 'ETFs', 'file': os.path.join(PROJECT_ROOT, 'worker', 'etfs.txt')},
-    {'name': 'India Stocks', 'file': os.path.join(PROJECT_ROOT, 'worker', 'india_stocks.txt')}
+    {'name': 'Stocks', 'file': TICKER_FILE_STOCKS, 'trading_days_in_month': 21},
+    {'name': 'ETFs', 'file': TICKER_FILE_ETFS, 'trading_days_in_month': 21},
+    {'name': 'India Stocks', 'file': TICKER_FILE_INDIA, 'trading_days_in_month': 21},
+    {'name': 'Crypto', 'file': TICKER_FILE_CRYPTO, 'trading_days_in_month': 30}
 ]
 
 FORWARD_PERIODS_MONTHS = [1, 2, 3]
 LOOKBACK_PERIODS_YEARS = sorted([5, 10, 20], reverse=True) 
 MAX_LOOKBACK = LOOKBACK_PERIODS_YEARS[0]
 
+# --- Helper Function to Fetch Price Data ---
 def fetch_price_history(ticker):
+    """
+    Fetches historical daily price data for a single ticker for the maximum lookback period.
+    """
     print(f"    - Fetching max ({MAX_LOOKBACK} years) data for {ticker}...")
     end_date = datetime.now()
     start_date = end_date - timedelta(days=MAX_LOOKBACK * 365.25)
@@ -37,11 +45,14 @@ def fetch_price_history(ticker):
         raise ValueError(f"No data returned for ticker {ticker}.")
     
     data.index = data.index.tz_localize(None)
-    
     return data['Close']
 
-def calculate_metrics_for_ticker(prices, forward_months, today):
-    forward_days = forward_months * 21
+# --- Core Logic to Calculate Metrics for a Single Ticker ---
+def calculate_metrics_for_ticker(prices, forward_months, today, trading_days_in_month):
+    """
+    Calculates all performance metrics for a single ticker's price history.
+    """
+    forward_days = forward_months * trading_days_in_month
     all_returns = []
     
     if prices.empty or prices.isnull().all():
@@ -88,7 +99,11 @@ def calculate_metrics_for_ticker(prices, forward_months, today):
         'yearsOfData': len(all_returns)
     }
 
+# --- Main Execution Block (Sequential) ---
 def run_scan():
+    """
+    Orchestrates the entire process sequentially for reliability.
+    """
     today = datetime.today()
     print(f"Starting daily seasonality scan for date: {today.strftime('%Y-%m-%d')}")
     
@@ -97,6 +112,7 @@ def run_scan():
     for config in ASSET_CONFIGS:
         asset_name = config['name']
         ticker_file = config['file']
+        trading_days_in_month = config['trading_days_in_month']
         print(f"\n========================================")
         print(f"Processing Asset Class: {asset_name}")
         print(f"========================================")
@@ -110,6 +126,7 @@ def run_scan():
 
         if not tickers:
             print(f"  - INFO: No tickers found in {ticker_file}. Skipping.")
+            final_output[asset_name] = {}
             continue
         
         asset_results = {}
@@ -129,14 +146,15 @@ def run_scan():
                     
                     for forward in FORWARD_PERIODS_MONTHS:
                         key = f"{forward}m_{lookback}y"
-                        metrics = calculate_metrics_for_ticker(prices_for_lookback, forward, today)
+                        metrics = calculate_metrics_for_ticker(prices_for_lookback, forward, today, trading_days_in_month)
                         
                         if metrics:
                             metrics['ticker'] = ticker
                             asset_results[key].append(metrics)
                 
                 print(f"  - SUCCESS: Finished all permutations for {ticker}.")
-                time.sleep(0.5) 
+                # Add a small delay to be respectful to the API provider and avoid rate limits.
+                time.sleep(0.05) 
 
             except Exception as e:
                 print(f"  --> ERROR processing {ticker}. Reason: {e}")
