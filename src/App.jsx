@@ -687,8 +687,8 @@ function App() {
     try {
       const response = await fetch(url);
       if (!response.ok) {
-          const errorData = await response.json().catch(() => ({error: "An unknown API error occurred."}));
-          throw new Error(errorData.error || `Network response error (status: ${response.status})`);
+          const errorText = await response.text().catch(() => "Could not read error response.");
+          throw new Error(`Network response error (status: ${response.status}). Body: ${errorText.substring(0, 500)}`);
       }
       
       const data = await response.json();
@@ -855,7 +855,7 @@ function App() {
   return (
     <>
 	<Analytics />
-	<SpeedInsights />    
+	<SpeedInsights />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         body { font-family: 'Exo 2', sans-serif; background-color: #010409; color: #E5E7EB; }
@@ -935,6 +935,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
