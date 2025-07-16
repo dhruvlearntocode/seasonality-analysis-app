@@ -326,7 +326,7 @@ function SeasonalityPage({
                   <Telescope size={24} className="text-blue-300/70"/>
                   <input 
                       id="ticker" type="text" value={ticker} onChange={(e) => setTicker(e.target.value)} 
-                      className="w-full bg-transparent text-2xl text-slate-100 uppercase placeholder:text-slate-500 placeholder:normal-case focus:outline-none border-b-2 border-slate-700 focus:border-amber-500 pb-1 transition-colors" 
+                      className="w-full bg-transparent text-2xl text-slate-100 uppercase placeholder:text-xl placeholder:text-slate-600 placeholder:normal-case focus:outline-none border-b-2 border-slate-700 focus:border-amber-500 pb-1 transition-colors" 
                       placeholder="Enter Yahoo Finance Ticker"
                   />
               </div>
@@ -580,7 +580,7 @@ function InSeasonPage({
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">{item.winRate.toFixed(1)}%</td>
                                 <td className={`px-6 py-4 whitespace-nowrap text-sm ${item.avgReturn > 0 ? 'text-green-400' : 'text-red-400'}`}>{item.avgReturn.toFixed(2)}%</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-green-400">{item.maxProfit.toFixed(2)}%</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-red-400">{item.maxLoss.toFixed(2)}%</td>
+                                <td className={`px-6 py-4 whitespace-nowrap text-sm ${item.maxLoss > 0 ? 'text-green-400' : 'text-red-400'}`}>{item.maxLoss.toFixed(2)}%</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">{item.yearsOfData}</td>
                             </tr>
                         ))}
@@ -866,7 +866,7 @@ function App() {
 
   return (
     <>
-		<Analytics />
+	    	<Analytics />
 	<SpeedInsights />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
@@ -947,6 +947,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
