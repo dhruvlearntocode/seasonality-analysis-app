@@ -154,7 +154,7 @@ def run_scan():
                 
                 print(f"  - SUCCESS: Finished all permutations for {ticker}.")
                 # Add a small delay to be respectful to the API provider and avoid rate limits.
-                time.sleep(0.05) 
+                time.sleep(0.01) 
 
             except Exception as e:
                 print(f"  --> ERROR processing {ticker}. Reason: {e}")
