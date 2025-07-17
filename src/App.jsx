@@ -816,40 +816,50 @@ function App() {
     if (selectedRange.start !== null && selectedRange.end !== null && seasonalityData && priceDataByYear) {
         const startDayIndex = selectedRange.start;
         const endDayIndex = selectedRange.end;
-        let positiveRangeYearsCount = 0;
-        let validYearsCount = 0;
+        let rangeReturns = [];
+        
         Object.keys(priceDataByYear).forEach(year => {
-            const yearData = priceDataByYear[year];
-            if (yearData.length > endDayIndex) {
-                const startPrice = yearData[startDayIndex]?.price;
-                const endPrice = yearData[endDayIndex]?.price;
-                if (startPrice && endPrice && startPrice > 0) {
-                    validYearsCount++;
-                    const logReturn = Math.log(endPrice / startPrice);
-                    if (logReturn > 0) {
-                        positiveRangeYearsCount++;
+            const yearNum = parseInt(year, 10);
+            if(yearNum >= startYear && yearNum <= endYear) {
+                const yearData = priceDataByYear[year];
+                if (yearData.length > endDayIndex) {
+                    const startPrice = yearData[startDayIndex]?.price;
+                    const endPrice = yearData[endDayIndex]?.price;
+                    if (startPrice && endPrice && startPrice > 0) {
+                        const logReturn = Math.log(endPrice / startPrice);
+                        rangeReturns.push(logReturn);
                     }
                 }
             }
         });
-        const rangeWinRate = validYearsCount > 0 ? (positiveRangeYearsCount / validYearsCount) * 100 : 0;
-        const slicedData = seasonalityData.slice(startDayIndex, endDayIndex + 1);
-        const startValue = slicedData[0]['Average Return'];
-        const endValue = slicedData[slicedData.length - 1]['Average Return'];
-        const rangeReturn = ((100 + endValue) / (100 + startValue) - 1) * 100;
-        const rangeMagnitude = endValue - startValue;
-        const returnsInRange = slicedData.map(d => d['Average Return']);
-        const mean = returnsInRange.reduce((a, b) => a + b, 0) / returnsInRange.length;
-        const variance = returnsInRange.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / returnsInRange.length;
-        const rangeFlux = Math.sqrt(variance);
-        setRangeMetrics({
-            rangeReturn: rangeReturn.toFixed(2),
-            rangeWinRate: rangeWinRate.toFixed(1),
-            rangeMagnitude: rangeMagnitude.toFixed(2),
-            rangeFlux: rangeFlux.toFixed(2)
-        });
+
+        if (rangeReturns.length > 0) {
+            const positiveReturns = rangeReturns.filter(r => r > 0);
+            const rangeWinRate = (positiveReturns.length / rangeReturns.length) * 100;
+            
+            const avgLogReturn = rangeReturns.reduce((a, b) => a + b, 0) / rangeReturns.length;
+            const avgSimpleReturn = (Math.exp(avgLogReturn) - 1) * 100;
+
+            const mean = rangeReturns.reduce((a, b) => a + b, 0) / rangeReturns.length;
+            const variance = rangeReturns.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / rangeReturns.length;
+            const rangeFlux = Math.sqrt(variance) * 100; // As a percentage
+
+            const slicedData = seasonalityData.slice(startDayIndex, endDayIndex + 1);
+            const startValue = slicedData[0]['Average Return'];
+            const endValue = slicedData[slicedData.length - 1]['Average Return'];
+            const rangeMagnitude = endValue - startValue;
+
+            setRangeMetrics({
+                rangeReturn: avgSimpleReturn.toFixed(2),
+                rangeWinRate: rangeWinRate.toFixed(1),
+                rangeMagnitude: rangeMagnitude.toFixed(2),
+                rangeFlux: rangeFlux.toFixed(2)
+            });
+        } else {
+            setRangeMetrics(null);
+        }
     }
-  }, [selectedRange, seasonalityData, priceDataByYear]);
+  }, [selectedRange, seasonalityData, priceDataByYear, startYear, endYear]);
 
   const resetSelection = () => {
       setSelectedRange({ start: null, end: null });
@@ -912,7 +922,7 @@ function App() {
 
   return (
     <>
-      <Analytics />
+	    <Analytics />
 	<SpeedInsights />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
