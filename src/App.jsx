@@ -152,7 +152,28 @@ const calculateTradingDaySeasonality = (dailyData, userStartYear, userEndYear, t
       d['Detrended Average'] = parseFloat((d['Average Return'] - trendValue).toFixed(2));
   });
   
-  const monthTicks = getMonthTicks(tradingDaysInYear);
+  const calibrationYearKey = mostRecentYear ? String(parseInt(mostRecentYear) - 1) : (allYearKeys.length > 1 ? allYearKeys[allYearKeys.length - 2] : null);
+  let monthTicks = [];
+  if (calibrationYearKey && dataByYear[calibrationYearKey]) {
+      const calibrationYearData = dataByYear[calibrationYearKey];
+      for (let month = 0; month < 12; month++) {
+          const firstDayOfMonth = calibrationYearData.find(d => d.date.getMonth() === month);
+          if (firstDayOfMonth) {
+              const dayIndex = calibrationYearData.findIndex(d => d.date.getTime() === firstDayOfMonth.date.getTime());
+              if (dayIndex !== -1) {
+                  monthTicks.push(`Day ${dayIndex + 1}`);
+              }
+          }
+      }
+  }
+  
+  if (monthTicks.length < 10) {
+    monthTicks = [];
+    for (let i = 0; i < 12; i++) {
+        monthTicks.push(`Day ${Math.round(tradingDaysInYear / 12 * i) + 1}`);
+    }
+  }
+
 
   return { chartData: finalChartData, yearKeys: pastYearKeys, monthTicks };
 };
@@ -911,8 +932,8 @@ function App() {
 
   return (
     <>
-	    	<Analytics />
-	<SpeedInsights />
+      <Analytics />
+	<SpeedInsights />    
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         body { font-family: 'Exo 2', sans-serif; background-color: #010409; color: #E5E7EB; }
@@ -986,7 +1007,9 @@ function App() {
               </motion.div>
             </AnimatePresence>
           </main>
-
+            <footer className="text-center mt-16 text-xs text-slate-500">
+                <p>Any analysis or scans produced by this site is not a financial advice and user is responsible for their own decision. This is a rough calculation based on free available data from yfinance API.</p>
+            </footer>
         </div>
       </div>
     </>
@@ -994,3 +1017,4 @@ function App() {
 }
 
 export default App;
+
