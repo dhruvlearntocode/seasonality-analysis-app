@@ -153,6 +153,7 @@ const calculateTradingDaySeasonality = (dailyData, userStartYear, userEndYear, t
   });
   
   const monthTicks = getMonthTicks(tradingDaysInYear);
+
   return { chartData: finalChartData, yearKeys: pastYearKeys, monthTicks };
 };
 
@@ -912,7 +913,7 @@ function App() {
   return (
     <>
       <Analytics />
-      <SpeedInsights />  	    
+	<SpeedInsights />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         body { font-family: 'Exo 2', sans-serif; background-color: #010409; color: #E5E7EB; }
@@ -996,3 +997,4 @@ function App() {
 }
 
 export default App;
+
