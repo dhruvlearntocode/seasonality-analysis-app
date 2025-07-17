@@ -1,5 +1,3 @@
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from "@vercel/speed-insights/react";
 import React, { useState, useMemo, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area, BarChart, Bar, Cell, ReferenceLine, ReferenceArea, ComposedChart } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -486,8 +484,9 @@ function InSeasonPage({
         filtered = filtered.filter(item => item.yearsOfData >= seasonalityYears);
     }
     
+    const sortableItems = [...filtered];
     if (sortConfig !== null) {
-      filtered.sort((a, b) => {
+      sortableItems.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
         }
@@ -497,7 +496,7 @@ function InSeasonPage({
         return 0;
       });
     }
-    return filtered;
+    return sortableItems;
   }, [scannerResults, sortConfig, strictYears, seasonalityYears, scanCompleted]);
 
   const requestSort = (key) => {
@@ -933,7 +932,7 @@ function App() {
   return (
     <>
       <Analytics />
-	<SpeedInsights />    
+      <SpeedInsights />  	    
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         body { font-family: 'Exo 2', sans-serif; background-color: #010409; color: #E5E7EB; }
@@ -1017,4 +1016,3 @@ function App() {
 }
 
 export default App;
-
