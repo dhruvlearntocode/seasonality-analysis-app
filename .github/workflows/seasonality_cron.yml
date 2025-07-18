@@ -6,7 +6,7 @@ name: Calculate Daily Seasonality
 on:
   schedule:
     # Runs at 11:00 UTC, which is 6:00 AM EST / 7:00 AM EDT
-    - cron: '0 11 * * *'
+    - cron: '0 1 * * *'
   
   # Allows you to run this workflow manually from the Actions tab on GitHub for testing.
   workflow_dispatch:
