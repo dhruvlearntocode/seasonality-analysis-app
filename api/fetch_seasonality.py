@@ -6,7 +6,6 @@ from datetime import datetime
 import yfinance as yf
 import json
 
-# Required for Vercel's serverless environment
 yf.set_tz_cache_location("/tmp/yfinance_cache")
 
 class handler(BaseHTTPRequestHandler):
@@ -16,26 +15,27 @@ class handler(BaseHTTPRequestHandler):
         start_year = query.get('startYear', [None])[0]
 
         if not ticker or not start_year:
-            return self._respond(400, {'error': 'Missing required query parameters: ticker and startYear'})
+            self._respond(400, {'error': 'Missing required query parameters: ticker and startYear'})
+            return
 
         try:
             start_date = datetime(int(start_year), 1, 1)
             end_date = datetime.now()
 
-            # ✅ More efficient than Ticker().history()
-            data = yf.download(ticker, start=start_date, end=end_date, auto_adjust=True, progress=False)
+            stock = yf.Ticker(ticker)
+            data = stock.history(start=start_date, end=end_date, auto_adjust=True)
 
             if data.empty:
-                return self._respond(404, {'error': f'No data found for ticker "{ticker}" from {start_year}. It may be an invalid symbol.'})
+                self._respond(404, {'error': f'No data found for ticker "{ticker}" from {start_year}. It may be an invalid symbol.'})
+                return
 
-            # ✅ Keep output structure the same
             data.index = data.index.strftime('%Y-%m-%d')
             response_data = data.to_dict(orient='index')
 
-            return self._respond(200, response_data)
+            self._respond(200, response_data)
 
         except Exception as e:
-            return self._respond(500, {'error': str(e)})
+            self._respond(500, {'error': str(e)})
 
     def _respond(self, status_code, payload):
         self.send_response(status_code)
