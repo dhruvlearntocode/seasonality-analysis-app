@@ -1,11 +1,11 @@
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from "@vercel/speed-insights/react";
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area, BarChart, Bar, Cell, ReferenceLine, ReferenceArea, ComposedChart } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, BarChart2, TrendingUp, TrendingDown, Percent, AlertCircle, Telescope, CheckCircle, Sparkles, Bot, Calendar, XCircle, Zap, ShieldCheck, ArrowDown, ArrowUp, ChevronDown } from 'lucide-react';
 
-// --- Helper Functions (Shared & Optimized) ---
+// --- Helper Functions (Shared) ---
 
 const formatXAxis = (tickItem, tradingDaysInYear) => {
   const dayNum = parseInt(tickItem.split(' ')[1], 10);
@@ -24,7 +24,8 @@ const getMonthTicks = (tradingDaysInYear) => {
     return ticks;
 };
 
-const CustomTooltip = React.memo(({ active, payload, label }) => {
+
+const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const sortedPayload = [...payload].sort((a, b) => a.name === 'Average Return' ? -1 : b.name === 'Average Return' ? 1 : a.name.localeCompare(b.name));
     return (
@@ -41,7 +42,7 @@ const CustomTooltip = React.memo(({ active, payload, label }) => {
     );
   }
   return null;
-});
+};
 
 const LoadingSpinner = ({text = "Calibrating Trajectory"}) => (
     <div className="flex flex-col items-center justify-center p-8 text-blue-300/70 h-full">
@@ -157,14 +158,12 @@ const calculateTradingDaySeasonality = (dailyData, userStartYear, userEndYear, t
 };
 
 const calculateMonthlyReturns = (dailyData, startYear, endYear) => {
+    // OPTIMIZED: This function is now much more efficient.
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    if (!dailyData || Object.keys(dailyData).length === 0) {
-        return monthNames.map(name => ({ name, avgReturn: 0 }));
-    }
-    
     const monthlyAggregates = {};
 
-    // OPTIMIZATION: Sort once, then iterate once to find start/end prices for each month.
+    // A single pass to find the first and last price for each relevant month.
+    // Data isn't guaranteed to be sorted from the API, so we must sort it.
     const sortedEntries = Object.entries(dailyData).sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB));
 
     for (const [dateStr, data] of sortedEntries) {
@@ -175,7 +174,7 @@ const calculateMonthlyReturns = (dailyData, startYear, endYear) => {
         if (year >= startYear && year <= endYear) {
             const key = `${year}-${month}`;
             if (!monthlyAggregates[key]) {
-                // First time seeing this month, record its first price
+                // First time we see this month, record its first price
                 monthlyAggregates[key] = { startPrice: data['Close'], endPrice: data['Close'] };
             } else {
                 // On subsequent days, just update the end price
@@ -184,7 +183,7 @@ const calculateMonthlyReturns = (dailyData, startYear, endYear) => {
         }
     }
 
-    // Aggregate results from the pre-processed data
+    // Now, aggregate the results from the pre-processed data
     const monthlyReturns = Array.from({ length: 12 }, () => []);
     for (const key in monthlyAggregates) {
         const monthIndex = parseInt(key.split('-')[1], 10);
@@ -251,7 +250,7 @@ const calculateVolatility = (dailyData) => {
     return stdDev * 100;
 };
 
-const StatCard = React.memo(({ title, value, unit, delay, description, isLast = false }) => {
+const StatCard = ({ title, value, unit, delay, description, isLast = false }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
@@ -280,7 +279,7 @@ const StatCard = React.memo(({ title, value, unit, delay, description, isLast = 
             </AnimatePresence>
         </motion.div>
     );
-});
+};
 
 function SeasonalityPage({
     ticker, setTicker,
@@ -460,18 +459,6 @@ function SeasonalityPage({
 
 // --- In-Season Scanner Page Components & Logic ---
 
-const SortableHeader = React.memo(({ children, name, requestSort, sortConfig }) => {
-    const isSorted = sortConfig.key === name;
-    return (
-        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-blue-200 uppercase tracking-wider cursor-pointer" onClick={() => requestSort(name)}>
-            <div className="flex items-center">
-                {children}
-                {isSorted && (sortConfig.direction === 'ascending' ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />)}
-            </div>
-        </th>
-    )
-});
-
 function InSeasonPage({
     winRateThreshold, setWinRateThreshold,
     forwardMonths, setForwardMonths,
@@ -487,24 +474,17 @@ function InSeasonPage({
     assetClass, setAssetClass
 }) {
 
-  const requestSort = useCallback((key) => {
-    let direction = 'descending';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'descending') {
-      direction = 'ascending';
-    }
-    setSortConfig({ key, direction });
-  }, [sortConfig, setSortConfig]);
-
   const displayedResults = useMemo(() => {
-    if (!scanCompleted || !scannerResults) return [];
+    if (!scanCompleted) return [];
     
-    let filtered = strictYears 
-        ? scannerResults.filter(item => item.yearsOfData >= seasonalityYears) 
-        : [...scannerResults];
+    let filtered = [...scannerResults];
+
+    if (strictYears) {
+        filtered = filtered.filter(item => item.yearsOfData >= seasonalityYears);
+    }
     
+    const sortableItems = [...filtered];
     if (sortConfig !== null) {
-      // Create a new array to avoid mutating the original sorted results
-      const sortableItems = [...filtered];
       sortableItems.sort((a, b) => {
         if (a[sortConfig.key] < b[sortConfig.key]) {
           return sortConfig.direction === 'ascending' ? -1 : 1;
@@ -514,14 +494,33 @@ function InSeasonPage({
         }
         return 0;
       });
-       return sortableItems;
     }
-    return filtered;
+    return sortableItems;
   }, [scannerResults, sortConfig, strictYears, seasonalityYears, scanCompleted]);
+
+  const requestSort = (key) => {
+    let direction = 'descending';
+    if (sortConfig.key === key && sortConfig.direction === 'descending') {
+      direction = 'ascending';
+    }
+    setSortConfig({ key, direction });
+  };
   
   const handleSubmit = (e) => {
       e.preventDefault();
       handleScan();
+  }
+
+  const SortableHeader = ({ children, name }) => {
+    const isSorted = sortConfig.key === name;
+    return (
+        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-blue-200 uppercase tracking-wider cursor-pointer" onClick={() => requestSort(name)}>
+            <div className="flex items-center">
+                {children}
+                {isSorted && (sortConfig.direction === 'ascending' ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />)}
+            </div>
+        </th>
+    )
   }
 
   return (
@@ -603,12 +602,12 @@ function InSeasonPage({
                 <table className="min-w-full divide-y divide-slate-700">
                     <thead className="bg-slate-800/50">
                         <tr>
-                            <SortableHeader name="ticker" requestSort={requestSort} sortConfig={sortConfig}>Ticker</SortableHeader>
-                            <SortableHeader name="winRate" requestSort={requestSort} sortConfig={sortConfig}>Win Rate</SortableHeader>
-                            <SortableHeader name="avgReturn" requestSort={requestSort} sortConfig={sortConfig}>Avg Return</SortableHeader>
-                            <SortableHeader name="maxProfit" requestSort={requestSort} sortConfig={sortConfig}>Max Profit</SortableHeader>
-                            <SortableHeader name="maxLoss" requestSort={requestSort} sortConfig={sortConfig}>Max Loss</SortableHeader>
-                            <SortableHeader name="yearsOfData" requestSort={requestSort} sortConfig={sortConfig}>Years</SortableHeader>
+                            <SortableHeader name="ticker">Ticker</SortableHeader>
+                            <SortableHeader name="winRate">Win Rate</SortableHeader>
+                            <SortableHeader name="avgReturn">Avg Return</SortableHeader>
+                            <SortableHeader name="maxProfit">Max Profit</SortableHeader>
+                            <SortableHeader name="maxLoss">Max Loss</SortableHeader>
+                            <SortableHeader name="yearsOfData">Years</SortableHeader>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
@@ -697,8 +696,37 @@ function App() {
   const [assetClass, setAssetClass] = useState('Stocks');
 
   // --- Logic for SeasonalityPage ---
+  useEffect(() => {
+    if (page === 'seasonality') {
+        handleFetchSeasonality();
+    }
+  }, [page, refetchTrigger]);
+  
+  // --- Logic for InSeasonPage ---
+  useEffect(() => {
+    if (page === 'in-season' && !allScanData) {
+        setScannerIsLoading(true);
+        fetch('/scan_results.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to load scan data. The daily scan may not have run yet.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                setAllScanData(data);
+                setScannerIsLoading(false);
+            })
+            .catch(error => {
+                console.error("Failed to load scan results:", error);
+                setScannerError(error.message);
+                setScannerIsLoading(false);
+            });
+    }
+  }, [page, allScanData]);
 
-  const handleFetchSeasonality = useCallback(async (e) => {
+
+  const handleFetchSeasonality = async (e) => {
     if (e) e.preventDefault();
     if (!ticker) { setSeasonalityError('Please provide a stock ticker.'); return; }
     const startYearNum = parseInt(startYear, 10);
@@ -786,53 +814,21 @@ function App() {
     } finally {
       setSeasonalityIsLoading(false);
     }
-  }, [ticker, startYear, endYear]);
+  };
 
-  useEffect(() => {
-    if (page === 'seasonality') {
-        handleFetchSeasonality();
-    }
-  }, [page, refetchTrigger, handleFetchSeasonality]);
-  
-  // --- Logic for InSeasonPage ---
-  useEffect(() => {
-    if (page === 'in-season' && !allScanData) {
-        setScannerIsLoading(true);
-        fetch('/scan_results.json')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to load scan data. The daily scan may not have run yet.');
-                }
-                return response.json();
-            })
-            .then(data => {
-                setAllScanData(data);
-                setScannerIsLoading(false);
-            })
-            .catch(error => {
-                console.error("Failed to load scan results:", error);
-                setScannerError(error.message);
-                setScannerIsLoading(false);
-            });
-    }
-  }, [page, allScanData]);
-
-  const handleChartClick = useCallback((e) => {
+  const handleChartClick = (e) => {
     if (!e || !e.activeTooltipIndex) return;
     const index = e.activeTooltipIndex;
-    setSelectedRange(prevRange => {
-        if (prevRange.start === null) {
-            return { start: index, end: null };
-        } else if (prevRange.end === null) {
-            const newEnd = index > prevRange.start ? index : prevRange.start;
-            const newStart = index > prevRange.start ? prevRange.start : index;
-            return { start: newStart, end: newEnd };
-        } else {
-            setRangeMetrics(null);
-            return { start: index, end: null };
-        }
-    });
-  }, []);
+    if (selectedRange.start === null) { setSelectedRange({ start: index, end: null }); }
+    else if (selectedRange.end === null) {
+        const newEnd = index > selectedRange.start ? index : selectedRange.start;
+        const newStart = index > selectedRange.start ? selectedRange.start : index;
+        setSelectedRange({ start: newStart, end: newEnd });
+    } else {
+        setSelectedRange({ start: index, end: null });
+        setRangeMetrics(null);
+    }
+  };
   
   useEffect(() => {
     if (selectedRange.start !== null && selectedRange.end !== null && seasonalityData && priceDataByYear) {
@@ -883,13 +879,13 @@ function App() {
     }
   }, [selectedRange, seasonalityData, priceDataByYear, startYear, endYear]);
 
-  const resetSelection = useCallback(() => {
+  const resetSelection = () => {
       setSelectedRange({ start: null, end: null });
       setRangeMetrics(null);
-  }, []);
+  };
 
   // --- Logic for InSeasonPage ---
-  const handleScan = useCallback(() => {
+  const handleScan = () => {
     if (!allScanData) {
         setScannerError("Scan data is not loaded yet. Please wait a moment or check the console for errors.");
         return;
@@ -916,9 +912,9 @@ function App() {
         setScanCompleted(true);
         setScannerIsLoading(false);
     }, 50);
-  }, [allScanData, winRateThreshold, forwardMonths, seasonalityYears, assetClass]);
+  };
 
-  const handleTickerClickFromScanner = useCallback((clickedTicker) => {
+  const handleTickerClickFromScanner = (clickedTicker) => {
     setTicker(clickedTicker);
     const currentYear = new Date().getFullYear();
     setStartYear(currentYear - seasonalityYears);
@@ -926,21 +922,21 @@ function App() {
     setCurrentAssetClassForChart(assetClass); // Set the asset class for the chart
     setPage('seasonality');
     setRefetchTrigger(prev => prev + 1);
-  }, [seasonalityYears, assetClass]);
+  };
 
   // --- Navigation ---
-  const NavButton = React.memo(({ targetPage, currentPage, setPage, children }) => (
-    <button
-        onClick={() => setPage(targetPage)}
-        className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            currentPage === targetPage
-                ? 'bg-slate-700 text-white'
-                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-        }`}
-    >
-        {children}
-    </button>
-  ));
+  const NavButton = ({ targetPage, children }) => (
+    <button 
+      onClick={() => setPage(targetPage)}
+      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+        page === targetPage 
+        ? 'bg-slate-700 text-white' 
+        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+      }`}
+    >
+      {children}
+    </button>
+  );
 
   return (
     <>
@@ -961,8 +957,8 @@ function App() {
         <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 relative z-10">
           <nav className="flex justify-center mb-12">
             <div className="flex space-x-4 bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg p-2">
-              <NavButton targetPage="seasonality" currentPage={page} setPage={setPage}>Seasonality</NavButton>
-              <NavButton targetPage="in-season" currentPage={page} setPage={setPage}>In-Season Scanner</NavButton>
+              <NavButton targetPage="seasonality">Seasonality</NavButton>
+              <NavButton targetPage="in-season">In-Season Scanner</NavButton>
             </div>
           </nav>
           
@@ -985,7 +981,7 @@ function App() {
                         error={seasonalityError}
                         monthlyData={monthlyData}
                         dayOfWeekData={dayOfWeekData}
-                        fullMetrics={fullMetrics}
+      _                 fullMetrics={fullMetrics}
                         rangeMetrics={rangeMetrics}
                         selectedRange={selectedRange}
                         handleFetchSeasonality={handleFetchSeasonality}
