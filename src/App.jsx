@@ -2,12 +2,13 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import React, { useState, useMemo, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area, BarChart, Bar, Cell, ReferenceLine, ReferenceArea, ComposedChart } from 'recharts';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, BarChart2, TrendingUp, TrendingDown, Percent, AlertCircle, Telescope, CheckCircle, Sparkles, Bot, Calendar, XCircle, Zap, ShieldCheck, ArrowDown, ArrowUp, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import { Search, BarChart2, TrendingUp, TrendingDown, Percent, AlertCircle, Telescope, CheckCircle, Sparkles, Bot, Calendar, XCircle, Zap, ShieldCheck, ArrowDown, ArrowUp, ChevronDown, Rocket, Sigma } from 'lucide-react';
 
 // --- Helper Functions (Shared) ---
 
 const formatXAxis = (tickItem, tradingDaysInYear) => {
+  if (!tickItem) return '';
   const dayNum = parseInt(tickItem.split(' ')[1], 10);
   // Calculate the approximate month based on the asset's specific trading calendar
   const monthApproximation = Math.floor((dayNum / tradingDaysInYear) * 12);
@@ -24,12 +25,17 @@ const getMonthTicks = (tradingDaysInYear) => {
     return ticks;
 };
 
-
+// Enhanced Tooltip
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const sortedPayload = [...payload].sort((a, b) => a.name === 'Average Return' ? -1 : b.name === 'Average Return' ? 1 : a.name.localeCompare(b.name));
     return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-black/30 backdrop-blur-sm p-3 border border-blue-300/20 shadow-2xl text-xs rounded-lg">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }} 
+        animate={{ opacity: 1, scale: 1 }} 
+        className="bg-slate-900/80 backdrop-blur-sm p-3 border border-blue-300/20 shadow-2xl text-xs rounded-lg"
+      >
+        <p className="font-bold text-slate-200 mb-2">{label}</p>
         <div className="space-y-1">
             {sortedPayload.map((p, index) => (
               <p key={index} style={{ color: p.name === 'Average Return' || p.name === 'Detrended Average' ? '#FBBF24' : p.name === 'Current Year' ? '#C0C0C0' : '#E5E7EB', fontWeight: p.name === 'Average Return' || p.name === 'Current Year' ? '600' : '400' }} className="flex justify-between items-center">
@@ -44,14 +50,18 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+// Enhanced Loading Spinner
 const LoadingSpinner = ({text = "Calibrating Trajectory"}) => (
     <div className="flex flex-col items-center justify-center p-8 text-blue-300/70 h-full">
         <motion.div 
-          className="w-16 h-16 border-2 border-blue-300/20 rounded-full flex items-center justify-center"
+          className="w-16 h-16 border-2 border-blue-300/20 rounded-full flex items-center justify-center relative shadow-lg shadow-blue-500/10"
           animate={{ rotate: 360 }} 
           transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
         >
+          {/* Sun */}
           <div className="w-4 h-4 bg-amber-400 rounded-full shadow-[0_0_10px_#FBBF24]"></div>
+          {/* Planet */}
+          <div className="w-3 h-3 bg-blue-300 rounded-full shadow-[0_0_8px_#38bdf8] absolute -top-1 left-1/2 -translate-x-1/2"></div>
         </motion.div>
         <p className="mt-4 tracking-widest text-sm uppercase">{text}</p>
     </div>
@@ -232,12 +242,13 @@ const calculateVolatility = (dailyData) => {
     return stdDev * 100;
 };
 
+// Enhanced StatCard
 const StatCard = ({ title, value, unit, delay, description, isLast = false }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
         <motion.div
-            className="text-center relative"
+            className="text-center relative bg-slate-800/30 backdrop-blur-sm p-4 rounded-lg border border-blue-300/10 transition-colors hover:border-blue-300/30"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay }}
@@ -253,13 +264,33 @@ const StatCard = ({ title, value, unit, delay, description, isLast = false }) =>
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
                         transition={{ duration: 0.2 }}
-                        className={`absolute bottom-full mb-2 w-48 p-2 bg-slate-800 text-white text-xs rounded-lg shadow-lg z-20 ${isLast ? 'right-0' : 'left-1/2 -translate-x-1/2'}`}
+                        className={`absolute bottom-full mb-2 w-48 p-2 bg-slate-900 border border-blue-300/20 text-white text-xs rounded-lg shadow-lg z-20 ${isLast ? 'right-0' : 'left-1/2 -translate-x-1/2'}`}
                     >
                         {description}
                     </motion.div>
                 )}
             </AnimatePresence>
         </motion.div>
+    );
+};
+
+// Enhanced Animated Toggle Switch
+const AnimatedToggle = ({ enabled, onChange }) => {
+    return (
+        <div 
+            className={`flex items-center w-11 h-6 rounded-full p-1 cursor-pointer transition-colors ${enabled ? 'bg-amber-500' : 'bg-slate-700'}`}
+            onClick={onChange}
+        >
+            <motion.div
+                className="w-4 h-4 bg-white rounded-full"
+                layout
+                transition={{ type: 'spring', stiffness: 700, damping: 30 }}
+                style={{
+                    marginLeft: enabled ? 'auto' : '0',
+                    marginRight: enabled ? '0' : 'auto',
+                }}
+            />
+        </div>
     );
 };
 
@@ -335,16 +366,18 @@ function SeasonalityPage({
 
   return (
     <>
-      <h1 className="text-5xl font-bold text-slate-100 mb-2 tracking-tight text-center" style={{textShadow: '0 0 15px rgba(251, 191, 36, 0.5)'}}>Seasonality</h1>
+      <h1 className="text-5xl font-bold text-slate-100 mb-2 tracking-tight text-center">
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-amber-500">Seasonality</span>
+      </h1>
       <p className="text-blue-200/70 text-lg mb-12 text-center">Orbital Performance Analysis</p>
 
       <div className="w-full max-w-5xl bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg p-6 control-panel relative mb-16 mx-auto">
           <form onSubmit={handleFetchSeasonality} className="flex flex-col md:flex-row items-center gap-6">
-              <div className="flex-grow flex items-center gap-3">
-                  <Telescope size={24} className="text-blue-300/70"/>
+              <div className="flex-grow flex items-center gap-3 bg-slate-800/50 border border-slate-700 rounded-lg px-4 py-2 focus-within:ring-2 focus-within:ring-amber-500 focus-within:border-amber-500 transition-all">
+                  <Telescope size={20} className="text-blue-300/70"/>
                   <input 
                       id="ticker" type="text" value={ticker} onChange={(e) => setTicker(e.target.value)} 
-                      className="w-full bg-transparent text-2xl text-slate-100 uppercase placeholder:text-xl placeholder:text-slate-600 placeholder:normal-case focus:outline-none border-b-2 border-slate-700 focus:border-amber-500 pb-1 transition-colors" 
+                      className="w-full bg-transparent text-xl text-slate-100 uppercase placeholder:text-lg placeholder:text-slate-600 placeholder:normal-case focus:outline-none" 
                       placeholder="Enter Yahoo Finance Ticker"
                   />
               </div>
@@ -358,21 +391,29 @@ function SeasonalityPage({
                       <input id="endYear" type="number" value={endYear} onChange={e => setEndYear(e.target.value === '' ? '' : parseInt(e.target.value, 10))} className="w-24 bg-slate-800 border border-slate-700 rounded-md p-2 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none" />
                   </div>
               </div>
-              <button 
+              <motion.button 
                   type="submit" disabled={isLoading} 
-                  className="bg-amber-500 hover:bg-amber-400 text-amber-900 font-bold py-3 px-6 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-full shadow-[0_0_20px_rgba(251,191,36,0.5)]"
+                  className="bg-amber-500 text-amber-900 font-bold py-3 px-6 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-full shadow-[0_0_20px_rgba(251,191,36,0.5)] flex items-center gap-2"
+                  whileHover={{ scale: isLoading ? 1 : 1.05 }}
+                  whileTap={{ scale: isLoading ? 1 : 0.95 }}
               >
+                  <Rocket size={18} />
                   {isLoading ? 'CALCULATING...' : 'OBSERVE'}
-              </button>
+              </motion.button>
           </form>
 
           {metrics && !isLoading && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-blue-300/10 pt-6 mt-6">
+            <motion.div 
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 border-t border-blue-300/10 pt-6 mt-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
               <StatCard title={rangeMetrics ? "Range Return" : "Avg. Trajectory"} value={rangeMetrics ? metrics.rangeReturn : fullMetrics.annualizedReturn} unit="%" delay={0.1} description={descriptions.rangeReturn || descriptions.annualizedReturn} />
               <StatCard title={rangeMetrics ? "Range Win %" : "Positive Years"} value={rangeMetrics ? metrics.rangeWinRate : fullMetrics.positiveYears} unit="%" delay={0.2} description={descriptions.rangeWinRate || descriptions.positiveYears} />
               <StatCard title={rangeMetrics ? "Range Magnitude" : "Vector Magnitude"} value={rangeMetrics ? metrics.rangeMagnitude : fullMetrics.totalPoints} unit="pts" delay={0.3} description={descriptions.rangeMagnitude || descriptions.vectorMagnitude} />
               <StatCard title={rangeMetrics ? "Range Flux" : "Cosmic Flux"} value={rangeMetrics ? metrics.rangeFlux : fullMetrics.volatility} unit="%" delay={0.4} description={descriptions.rangeFlux || descriptions.cosmicFlux} isLast={true} />
-            </div>
+            </motion.div>
           )}
       </div>
 
@@ -388,28 +429,43 @@ function SeasonalityPage({
             </div>
           )}
           {!isLoading && !error && seasonalityData && (
-              <div className="pb-16">
+              <motion.div 
+                className="pb-16"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
                   <div className="h-[400px] relative">
                       <h2 className="text-3xl font-bold text-center mb-6 text-slate-200 tracking-tight">Seasonal Trajectory</h2>
-                      <div className="absolute top-2 right-2 flex flex-col items-end gap-2 z-20">
+                      <div className="absolute top-0 right-2 flex flex-col items-end gap-2 z-20">
                           <div className="h-7"> {/* Placeholder for Reset button */}
                               {selectedRange.start !== null && (
-                                  <button onClick={resetSelection} className="bg-red-500/20 text-white py-1 px-3 rounded-full text-xs flex items-center gap-1 hover:bg-red-500/40 transition-colors">
+                                  <motion.button 
+                                    onClick={resetSelection} className="bg-red-500/20 text-white py-1 px-3 rounded-full text-xs flex items-center gap-1 hover:bg-red-500/40 transition-colors"
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                  >
                                       <XCircle size={14}/>
                                       Reset Selection
-                                  </button>
+                                  </motion.button>
                               )}
                           </div>
-                          <div className="flex items-center gap-2">
-                              <label htmlFor="current-year-toggle" className="text-xs text-blue-300/70">Show Current Year</label>
-                              <button id="current-year-toggle" type="button" onClick={() => setShowCurrentYear(!showCurrentYear)} className={`relative inline-flex items-center h-6 w-11 rounded-full transition-colors ${showCurrentYear ? 'bg-amber-500' : 'bg-slate-700'}`}>
-                                  <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${showCurrentYear ? 'translate-x-6' : 'translate-x-1'}`} />
-                              </button>
+                          <div className="flex items-center gap-2 p-1 bg-slate-800/50 rounded-full">
+                              <label htmlFor="current-year-toggle" className="text-xs text-blue-300/70 pl-2">Show Current Year</label>
+                              <AnimatedToggle enabled={showCurrentYear} onChange={() => setShowCurrentYear(!showCurrentYear)} />
                           </div>
                       </div>
                       <ResponsiveContainer width="100%" height="100%">
                           <ComposedChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }} onClick={handleChartClick}>
-                              <defs><radialGradient id="starGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%"><stop offset="0%" stopColor="#FBBF24" stopOpacity={0.4}/><stop offset="100%" stopColor="#F59E0B" stopOpacity={0}/></radialGradient></defs>
+                              <defs>
+                                <radialGradient id="starGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                                    <stop offset="0%" stopColor="#FBBF24" stopOpacity={0.4}/>
+                                    <stop offset="100%" stopColor="#F59E0B" stopOpacity={0}/>
+                                </radialGradient>
+                                <linearGradient id="detrendedGlow" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.4}/>
+                                    <stop offset="95%" stopColor="#0284c7" stopOpacity={0}/>
+                                </linearGradient>
+                              </defs>
                               <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} />
                               <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={chartMonthTicks} tickFormatter={(tick) => formatXAxis(tick, tradingDaysInYear)} />
                               <YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={lineChartDomain} />
@@ -425,14 +481,54 @@ function SeasonalityPage({
 
                   <div className="h-[300px] mt-24">
                       <h2 className="text-3xl font-bold text-center mb-6 text-slate-200 tracking-tight">Detrended Seasonal Path</h2>
-                      <ResponsiveContainer width="100%" height="100%"><AreaChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}><CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} /><XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={chartMonthTicks} tickFormatter={(tick) => formatXAxis(tick, tradingDaysInYear)} /><YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={detrendedDomain} /><Tooltip content={<CustomTooltip />} cursor={{stroke: '#F59E0B', strokeWidth: 1, strokeDasharray: '3 3'}}/><Area type="monotone" dataKey="Detrended Average" stroke="#F59E0B" strokeWidth={3} fillOpacity={1} fill="url(#starGlow)" filter="drop-shadow(0 0 15px rgba(251, 191, 36, 0.6))"/></AreaChart></ResponsiveContainer>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={seasonalityData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                            <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} />
+                            <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}} ticks={chartMonthTicks} tickFormatter={(tick) => formatXAxis(tick, tradingDaysInYear)} />
+                            <YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(0)}%`} tick={{fontSize: 12}} domain={detrendedDomain} />
+                            <Tooltip content={<CustomTooltip />} cursor={{stroke: '#0ea5e9', strokeWidth: 1, strokeDasharray: '3 3'}}/>
+                            <Area type="monotone" dataKey="Detrended Average" stroke="#0ea5e9" strokeWidth={3} fillOpacity={1} fill="url(#detrendedGlow)" filter="drop-shadow(0 0 15px rgba(14, 165, 233, 0.6))"/>
+                        </AreaChart>
+                      </ResponsiveContainer>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch mt-24">
-                      <div className="h-[300px]"><h3 className="text-xl font-semibold text-center mb-4 text-slate-300 tracking-tight">Monthly Return</h3><ResponsiveContainer width="100%" height="100%"><BarChart data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}><defs><radialGradient id="barGradientPositive" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#FBBF24" stopOpacity={0.7}/><stop offset="100%" stopColor="#F59E0B" stopOpacity={0.4}/></radialGradient><linearGradient id="barGradientNegative" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#475569" stopOpacity={0.6}/><stop offset="100%" stopColor="#334155" stopOpacity={0.3}/></linearGradient></defs><CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} /><XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}}/><YAxis stroke="#475569" tickFormatter={(tick) => `${tick}%`} tick={{fontSize: 12}} domain={monthlyDomain} /><Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(251, 191, 36, 0.1)'}}/><Bar dataKey="avgReturn">{monthlyData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.avgReturn > 0 ? 'url(#barGradientPositive)' : 'url(#barGradientNegative)'} stroke={entry.avgReturn > 0 ? '#F59E0B' : '#475569'} strokeWidth={2}/>))}</Bar></BarChart></ResponsiveContainer></div>
-                      <div className="h-[300px]"><h3 className="text-xl font-semibold text-center mb-4 text-slate-300 tracking-tight">Day-of-Week Return</h3><ResponsiveContainer width="100%" height="100%"><BarChart data={dayOfWeekData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}><defs><radialGradient id="barGradientPositive" cx="50%" cy="50%" r="50%"><stop offset="0%" stopColor="#FBBF24" stopOpacity={0.7}/><stop offset="100%" stopColor="#F59E0B" stopOpacity={0.4}/></radialGradient><linearGradient id="barGradientNegative" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#475569" stopOpacity={0.6}/><stop offset="100%" stopColor="#334155" stopOpacity={0.3}/></linearGradient></defs><CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} /><XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}}/><YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(3)}%`} tick={{fontSize: 12}} domain={dayOfWeekDomain} /><Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(251, 191, 36, 0.1)'}}/><Bar dataKey="avgReturn">{dayOfWeekData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.avgReturn > 0 ? 'url(#barGradientPositive)' : 'url(#barGradientNegative)'} stroke={entry.avgReturn > 0 ? '#F59E0B' : '#475569'} strokeWidth={2}/>))}</Bar></BarChart></ResponsiveContainer></div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-stretch mt-24">
+                      <div className="h-[300px]">
+                        <h3 className="text-xl font-semibold text-center mb-4 text-slate-300 tracking-tight">Monthly Return</h3>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                <defs>
+                                    <radialGradient id="barGradientPositive" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stopColor="#FBBF24" stopOpacity={0.7}/>
+                                        <stop offset="100%" stopColor="#F59E0B" stopOpacity={0.4}/>
+                                    </radialGradient>
+                                    <linearGradient id="barGradientNegative" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#475569" stopOpacity={0.6}/>
+                                        <stop offset="100%" stopColor="#334155" stopOpacity={0.3}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} />
+                                <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}}/>
+                                <YAxis stroke="#475569" tickFormatter={(tick) => `${tick}%`} tick={{fontSize: 12}} domain={monthlyDomain} />
+                                <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(251, 191, 36, 0.1)'}}/>
+                                <Bar dataKey="avgReturn">{monthlyData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.avgReturn > 0 ? 'url(#barGradientPositive)' : 'url(#barGradientNegative)'} stroke={entry.avgReturn > 0 ? '#F59E0B' : '#475569'} strokeWidth={1}/>))}</Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="h-[300px]">
+                        <h3 className="text-xl font-semibold text-center mb-4 text-slate-300 tracking-tight">Day-of-Week Return</h3>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={dayOfWeekData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                <CartesianGrid stroke="#1e293b" strokeDasharray="1 10" strokeOpacity={0.5} />
+                                <XAxis dataKey="name" stroke="#475569" tick={{fontSize: 12}}/>
+                                <YAxis stroke="#475569" tickFormatter={(tick) => `${tick.toFixed(3)}%`} tick={{fontSize: 12}} domain={dayOfWeekDomain} />
+                                <Tooltip content={<CustomTooltip />} cursor={{fill: 'rgba(251, 191, 36, 0.1)'}}/>
+                                <Bar dataKey="avgReturn">{dayOfWeekData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.avgReturn > 0 ? 'url(#barGradientPositive)' : 'url(#barGradientNegative)'} stroke={entry.avgReturn > 0 ? '#F59E0B' : '#475569'} strokeWidth={1}/>))}</Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                      </div>
                   </div>
-              </div>
+              </motion.div>
           )}
       </div>
     </>
@@ -440,6 +536,24 @@ function SeasonalityPage({
 }
 
 // --- In-Season Scanner Page Components & Logic ---
+
+// Helper component for enhanced <select>
+const StyledSelect = ({ id, value, onChange, children, label }) => (
+    <div className="flex flex-col gap-2">
+        <label htmlFor={id} className="text-sm text-blue-300/70">{label}</label>
+        <div className="relative">
+            <select 
+                id={id} 
+                value={value} 
+                onChange={onChange} 
+                className="w-full bg-slate-800 border border-slate-700 rounded-md py-2 px-3 text-white focus:ring-2 focus:ring-amber-500 focus:outline-none appearance-none"
+            >
+                {children}
+            </select>
+            <ChevronDown className="w-5 h-5 absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+        </div>
+    </div>
+);
 
 function InSeasonPage({
     winRateThreshold, setWinRateThreshold,
@@ -496,7 +610,7 @@ function InSeasonPage({
   const SortableHeader = ({ children, name }) => {
     const isSorted = sortConfig.key === name;
     return (
-        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-blue-200 uppercase tracking-wider cursor-pointer" onClick={() => requestSort(name)}>
+        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-blue-200 uppercase tracking-wider cursor-pointer transition-colors hover:bg-slate-700/50" onClick={() => requestSort(name)}>
             <div className="flex items-center">
                 {children}
                 {isSorted && (sortConfig.direction === 'ascending' ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />)}
@@ -507,60 +621,50 @@ function InSeasonPage({
 
   return (
     <>
-      <h1 className="text-5xl font-bold text-slate-100 mb-2 tracking-tight text-center" style={{textShadow: '0 0 15px rgba(56, 189, 248, 0.5)'}}>In-Season Scanner</h1>
+      <h1 className="text-5xl font-bold text-slate-100 mb-2 tracking-tight text-center">
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-blue-500">In-Season Scanner</span>
+      </h1>
       <p className="text-blue-200/70 text-lg mb-12 text-center">Find Tickers with Strong Seasonal Winds</p>
 
       <form onSubmit={handleSubmit} className="w-full max-w-5xl bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg p-6 control-panel relative mb-8 mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-end">
           {/* Controls */}
-          <div className="flex flex-col gap-2">
-            <label htmlFor="assetClass" className="text-sm text-blue-300/70">Asset Class</label>
-            <div className="relative">
-                <select id="assetClass" value={assetClass} onChange={e => setAssetClass(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded-md py-2 px-3 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none appearance-none">
-                    <option value="Stocks">Stocks</option>
-                    <option value="ETFs">ETFs</option>
-                    <option value="India Stocks">India Stocks</option>
-                    <option value="Crypto">Crypto</option>
-                </select>
-                <ChevronDown className="w-5 h-5 absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
+          <StyledSelect id="assetClass" label="Asset Class" value={assetClass} onChange={e => setAssetClass(e.target.value)}>
+              <option value="Stocks">Stocks</option>
+              <option value="ETFs">ETFs</option>
+              <option value="India Stocks">India Stocks</option>
+              <option value="Crypto">Crypto</option>
+          </StyledSelect>
+          
           <div className="flex flex-col gap-2">
             <label htmlFor="winRate" className="text-sm text-blue-300/70">Win Rate Threshold</label>
-            <div className="flex items-center bg-slate-800 border border-slate-700 rounded-md">
+            <div className="flex items-center bg-slate-800 border border-slate-700 rounded-md focus-within:ring-2 focus-within:ring-amber-500 focus-within:border-amber-500 transition-all">
                 <input id="winRate" type="number" value={winRateThreshold} onChange={e => setWinRateThreshold(e.target.value)} className="w-full bg-transparent p-2 text-center text-white focus:outline-none" />
-                <span className="text-slate-400 pr-3">%</span>
+                <Percent className="text-slate-400 mr-3 h-4 w-4" />
             </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="forwardMonths" className="text-sm text-blue-300/70">Forward Period</label>
-            <div className="relative">
-                <select id="forwardMonths" value={forwardMonths} onChange={e => setForwardMonths(parseInt(e.target.value))} className="w-full bg-slate-800 border border-slate-700 rounded-md py-2 px-3 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none appearance-none">
-                    <option value="1">1 Month</option>
-                    <option value="2">2 Months</option>
-                    <option value="3">3 Months</option>
-                </select>
-                <ChevronDown className="w-5 h-5 absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <label htmlFor="seasonalityYears" className="text-sm text-blue-300/70">Seasonality Period</label>
-            <div className="relative">
-                <select id="seasonalityYears" value={seasonalityYears} onChange={e => setSeasonalityYears(parseInt(e.target.value))} className="w-full bg-slate-800 border border-slate-700 rounded-md py-2 px-3 text-center text-white focus:ring-2 focus:ring-amber-500 focus:outline-none appearance-none">
-                    <option value="5">Last 5 Years</option>
-                    <option value="10">Last 10 Years</option>
-                    <option value="20">Last 20 Years</option>
-                </select>
-                <ChevronDown className="w-5 h-5 absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            </div>
-          </div>
-          <button 
+
+          <StyledSelect id="forwardMonths" label="Forward Period" value={forwardMonths} onChange={e => setForwardMonths(parseInt(e.target.value))}>
+              <option value="1">1 Month</option>
+              <option value="2">2 Months</option>
+              <option value="3">3 Months</option>
+          </StyledSelect>
+
+          <StyledSelect id="seasonalityYears" label="Seasonality Period" value={seasonalityYears} onChange={e => setSeasonalityYears(parseInt(e.target.value))}>
+              <option value="5">Last 5 Years</option>
+              <option value="10">Last 10 Years</option>
+              <option value="20">Last 20 Years</option>
+          </StyledSelect>
+
+          <motion.button 
               type="submit" disabled={scannerIsLoading} 
-              className="bg-amber-500 hover:bg-amber-400 text-amber-900 font-bold py-2 px-6 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-full shadow-[0_0_20px_rgba(251,191,36,0.5)] flex items-center justify-center gap-2"
+              className="bg-amber-500 text-amber-900 font-bold py-2 px-6 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed rounded-full shadow-[0_0_20px_rgba(251,191,36,0.5)] flex items-center justify-center gap-2"
+              whileHover={{ scale: scannerIsLoading ? 1 : 1.05 }}
+              whileTap={{ scale: scannerIsLoading ? 1 : 0.95 }}
           >
               <Zap size={18}/>
               {scannerIsLoading ? 'SCANNING...' : 'SCAN'}
-          </button>
+          </motion.button>
         </div>
       </form>
 
@@ -572,15 +676,13 @@ function InSeasonPage({
           <motion.div initial={{opacity: 0}} animate={{opacity: 1}}>
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-slate-200 tracking-tight">Scan Results</h2>
-                <div className="flex items-center gap-2">
-                    <label htmlFor="strict-toggle" className="text-sm text-blue-300/70">Strict Years</label>
-                    <button id="strict-toggle" type="button" onClick={() => setStrictYears(!strictYears)} className={`relative inline-flex items-center h-8 rounded-full w-14 transition-colors ${strictYears ? 'bg-amber-500' : 'bg-slate-700'}`}>
-                        <span className={`inline-block w-6 h-6 transform bg-white rounded-full transition-transform ${strictYears ? 'translate-x-7' : 'translate-x-1'}`} />
-                    </button>
+                <div className="flex items-center gap-2 p-1 bg-slate-800/50 rounded-full">
+                    <label htmlFor="strict-toggle" className="text-sm text-blue-300/70 pl-2">Strict Years</label>
+                    <AnimatedToggle enabled={strictYears} onChange={() => setStrictYears(!strictYears)} />
                 </div>
             </div>
             {displayedResults.length > 0 ? (
-              <div className="overflow-x-auto bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg">
+              <div className="overflow-x-auto bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg shadow-lg">
                 <table className="min-w-full divide-y divide-slate-700">
                     <thead className="bg-slate-800/50">
                         <tr>
@@ -593,9 +695,17 @@ function InSeasonPage({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
+                        <AnimatePresence>
                         {displayedResults.map((item) => (
-                            <tr key={item.ticker} className="hover:bg-slate-800/40 transition-colors">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-amber-400 cursor-pointer hover:underline" onClick={() => onTickerClick(item.ticker)}>
+                            <motion.tr 
+                                key={item.ticker} 
+                                className="hover:bg-slate-800/40 transition-colors"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                layout
+                            >
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-amber-400 cursor-pointer hover:text-amber-300 hover:underline" onClick={() => onTickerClick(item.ticker)}>
                                     {item.ticker}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">{item.winRate.toFixed(1)}%</td>
@@ -603,16 +713,17 @@ function InSeasonPage({
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-green-400">{item.maxProfit.toFixed(2)}%</td>
                                 <td className={`px-6 py-4 whitespace-nowrap text-sm ${item.maxLoss > 0 ? 'text-green-400' : 'text-red-400'}`}>{item.maxLoss.toFixed(2)}%</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">{item.yearsOfData}</td>
-                            </tr>
+                            </motion.tr>
                         ))}
+                        </AnimatePresence>
                     </tbody>
                 </table>
               </div>
             ) : (
               <div className="text-center py-12 text-slate-400">
                 <ShieldCheck size={48} className="mx-auto mb-4 opacity-30"/>
-                <p>No tickers met the criteria for this scan.</p>
-                <p className="text-sm opacity-70">Try adjusting the thresholds or waiting for the daily scan to complete.</p>
+                <p className="text-lg">No tickers met the criteria for this scan.</p>
+                <p className="text-sm opacity-70">Try adjusting the thresholds or check back after the next daily scan.</p>
               </div>
             )}
           </motion.div>
@@ -910,20 +1021,25 @@ function App() {
   const NavButton = ({ targetPage, children }) => (
     <button 
       onClick={() => setPage(targetPage)}
-      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-        page === targetPage 
-        ? 'bg-slate-700 text-white' 
-        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-      }`}
+      className="px-4 py-2 rounded-md text-sm font-medium transition-colors relative"
     >
-      {children}
+      {page === targetPage && (
+        <motion.div
+            className="absolute inset-0 bg-slate-700 rounded-lg z-0"
+            layoutId="nav-highlight"
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        />
+      )}
+      <span className="relative z-10">
+        {children}
+      </span>
     </button>
   );
 
   return (
     <>
 	    <Analytics />
-	<SpeedInsights />
+	    <SpeedInsights />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&display=swap');
         body { font-family: 'Exo 2', sans-serif; background-color: #010409; color: #E5E7EB; }
@@ -933,15 +1049,18 @@ function App() {
         .starfield { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: radial-gradient(1px 1px at 20% 30%, #93c5fd, transparent), radial-gradient(1px 1px at 80% 70%, #93c5fd, transparent), radial-gradient(1px 1px at 50% 50%, #e0f2fe, transparent), radial-gradient(2px 2px at 90% 10%, #e0f2fe, transparent), radial-gradient(2px 2px at 10% 90%, #93c5fd, transparent), radial-gradient(1px 1px at 40% 15%, #e0f2fe, transparent), radial-gradient(1px 1px at 95% 85%, #93c5fd, transparent), radial-gradient(2px 2px at 60% 60%, #e0f2fe, transparent), radial-gradient(1px 1px at 75% 45%, #93c5fd, transparent); background-size: 100% 100%; animation: star-move 120s linear infinite; }
         @keyframes star-move { from { background-position: 0 0; } to { background-position: -10000px 5000px; } }
         .control-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, rgba(14, 116, 144, 0.1), transparent); border-radius: 0.5rem; pointer-events: none; }
+        .recharts-responsive-container { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
       `}</style>
       <div className="relative bg-[#010409] min-h-screen overflow-hidden">
         <div className="starfield"></div>
         <div className="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 relative z-10">
           <nav className="flex justify-center mb-12">
-            <div className="flex space-x-4 bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg p-2">
-              <NavButton targetPage="seasonality">Seasonality</NavButton>
-              <NavButton targetPage="in-season">In-Season Scanner</NavButton>
-            </div>
+            <LayoutGroup>
+                <div className="flex space-x-2 bg-slate-900/50 backdrop-blur-sm border border-blue-300/10 rounded-lg p-1.5 text-slate-300">
+                    <NavButton targetPage="seasonality">Seasonality</NavButton>
+                    <NavButton targetPage="in-season">In-Season Scanner</NavButton>
+                </div>
+            </LayoutGroup>
           </nav>
           
           <main>
@@ -997,8 +1116,9 @@ function App() {
               </motion.div>
             </AnimatePresence>
           </main>
-            <footer className="text-center mt-16 text-xs text-slate-500">
-                <p>Any analysis or scans produced by this site is not a financial advice and user is responsible for their own decision. This is a rough calculation based on free available data from yfinance API.</p>
+            <footer className="text-center mt-16 text-xs text-slate-500 max-w-3xl mx-auto">
+                <Sigma size={16} className="mx-auto mb-2 opacity-30" />
+                <p>Any analysis or scans produced by this site is not financial advice and the user is responsible for their own decisions. This is a rough calculation based on free available data from yfinance API. Past performance is not indicative of future results.</p>
             </footer>
         </div>
       </div>
